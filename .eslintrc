@@ -1,0 +1,32 @@
+{
+  "parser": "babel-eslint",
+  "extends": "airbnb",
+  "env": {
+    "browser": true,
+    "mocha": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true,
+      "classes": true,
+      "defaultParams": true,
+      "experimentalObjectRestSpread": true,
+    }
+  },
+  "rules": {
+    "react/jsx-no-bind": 0,
+    "react/prefer-stateless-function": 0,
+    "comma-dangle": 0,
+    "no-use-before-define": 0,
+    "consistent-return": 0,
+    "no-underscore-dangle": 0,
+    "no-shadow": 0,
+    "max-len": 0,
+  },
+  "plugins": [
+    "react"
+  ]
+}
