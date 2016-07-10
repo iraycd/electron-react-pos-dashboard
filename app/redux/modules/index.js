@@ -8,6 +8,8 @@ import accUI from './accountUI';
 import users from './accountUsers';
 import login from './login';
 import reports from './reports';
+import cashier from './cashier';
+import cart from './cart';
 
 const inventory = combineReducers({
   ui: invUI,
@@ -23,6 +25,8 @@ const rootReducer = combineReducers({
   inventory,
   account,
   reports,
+  cashier,
+  cart,
   login,
   routing,
   form: form.normalize({

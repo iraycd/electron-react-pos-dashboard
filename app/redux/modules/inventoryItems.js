@@ -1,10 +1,11 @@
 const FETCH_ALL_ITEMS = 'FETCH_ALL_ITEMS';
+
+const ALL_ITEMS_FETCHED = 'ALL_ITEMS_FETCHED';
 const NEW_ITEM = 'NEW_ITEM';
 const UPDATE_ITEM = 'UPDATE_ITEM';
 const REMOVE_ITEMS = 'REMOVE_ITEMS';
-
 const ITEM_STOCK_UPDATED = 'ITEM_STOCK_UPDATED';
-const ALL_ITEMS_FETCHED = 'ALL_ITEMS_FETCHED';
+
 const NEW_ITEM_SYNCED = 'NEW_ITEM_SYNCED';
 const UPDATE_ITEM_SYNCED = 'UPDATE_ITEM_SYNCED';
 const REMOVE_ITEMS_SYNCED = 'REMOVE_ITEMS_SYNCED';
@@ -12,20 +13,19 @@ const REMOVE_ITEMS_SYNCED = 'REMOVE_ITEMS_SYNCED';
 export default function reducer(state = [], action) {
   switch (action.type) {
     case ALL_ITEMS_FETCHED:
-      return Object.keys(action.items)
-        .map(key => action.items[key]);
+      return action.items;
     case NEW_ITEM:
       return [
         ...state,
         action.newItem
       ];
     case UPDATE_ITEM:
-      return state.map(item => (item.id === action.itemId ?
+      return state.map((item) => (item.id === action.itemId ?
         { ...item, ...action.itemProps } : item));
     case REMOVE_ITEMS:
-      return state.filter(item => action.items.indexOf(item) === -1);
+      return state.filter((item) => action.items.indexOf(item) === -1);
     case ITEM_STOCK_UPDATED:
-      return state.map(item => (item.id === action.item.id ? action.item : item));
+      return state.map((item) => (item.id === action.item.id ? action.item : item));
     default:
       return state;
   }
@@ -157,7 +157,7 @@ export function removeItems(items) {
     const itemsToDel = {};
 
     dispatch({ type: REMOVE_ITEMS, items });
-    items.forEach(item => {
+    items.forEach((item) => {
       storage.child(`itemImages/${item.id}.jpg`).delete()
       .then(() => console.log(`${item} image deleted`));
 
@@ -175,17 +175,24 @@ export function fetchInventoryItems() {
     dispatch({ type: FETCH_ALL_ITEMS });
 
     ref.child('inventory').once('value')
-    .then(snap => dispatch({ type: ALL_ITEMS_FETCHED, items: snap.val() || [] }))
-    .then(() => {
-      ref.child('inventory').on('child_changed', snap => {
-        const item = snap.val();
-        const origItem = getState().inventory
-        .items.reduce((prev, curr) => (prev.id === item.id ? prev : curr));
+      .then((snap) => {
+        const rawItems = snap.val();
+        const items = Object.keys(rawItems)
+          .map((key) => rawItems[key]);
 
-        if (origItem.stock !== item.stock) {
-          dispatch({ type: ITEM_STOCK_UPDATED, item });
-        }
+        dispatch({ type: ALL_ITEMS_FETCHED, items });
+        localStorage.setObj('inventoryItems', items);
+      })
+      .then(() => {
+        ref.child('inventory').on('child_changed', (snap) => {
+          const item = snap.val();
+          const origItem = getState().inventory.items
+            .reduce((prev, curr) => (prev.id === item.id ? prev : curr));
+
+          if (origItem.stock !== item.stock) {
+            dispatch({ type: ITEM_STOCK_UPDATED, item });
+          }
+        });
       });
-    });
   };
 }

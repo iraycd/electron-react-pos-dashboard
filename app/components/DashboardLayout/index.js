@@ -90,6 +90,12 @@ export default class DashboardLayout extends Component {
               <Report />
             </MenuItem>
           </Link>
+          <Link to="/cashier">
+            <MenuItem>
+              <span className="hidden-xs hidden-sm hidden-md">cashier</span>
+              <Report />
+            </MenuItem>
+          </Link>
         </Paper>
         <div
           id="children"

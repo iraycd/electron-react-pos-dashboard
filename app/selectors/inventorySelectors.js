@@ -48,13 +48,13 @@ export const getFilteredItems = createSelector(
   (filter, items) => {
     switch (filter.by) {
       case 'category':
-        return items.filter(item => item.category === filter.name);
+        return items.filter((item) => item.category === filter.name);
       case 'brand':
-        return items.filter(item => item.brand === filter.name);
+        return items.filter((item) => item.brand === filter.name);
       case 'supplier':
-        return items.filter(item => item.supplier === filter.name);
+        return items.filter((item) => item.supplier === filter.name);
       case 'search':
-        return items.filter(item => pattern(filter.name).test(item.name));
+        return items.filter((item) => pattern(filter.name).test(item.name));
       default:
         return items;
     }

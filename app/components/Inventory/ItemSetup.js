@@ -19,7 +19,8 @@ import styles from './styles';
     'brand',
     'supplier',
     'description',
-    'image'
+    'image',
+    'feet'
   ]
 },
 (state) => ({
@@ -132,7 +133,7 @@ export default class ItemSetup extends Component {
               min={1}
               step="any"
               name="id"
-              floatingLabelText="Item ID"
+              floatingLabelText="ID"
               errorText={fieldError}
               onBlur={this._onBlurValidate}
               fullWidth
@@ -226,9 +227,16 @@ export default class ItemSetup extends Component {
             />
             <br />
             <TextField
+              {...fields.feet}
+              type="number"
+              floatingLabelText="Feet(optional)"
+              fullWidth
+            />
+            <br />
+            <TextField
               {...fields.description}
               type="textarea"
-              floatingLabelText="Description"
+              floatingLabelText="Description(optional)"
               fullWidth
             />
             <input className="hidden" type="submit" />

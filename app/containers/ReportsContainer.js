@@ -5,7 +5,9 @@ import Reports from './../components/Reports';
 import * as reportsActions from './../redux/modules/reports';
 
 function mapStateToProps(state) {
-  const { reports } = state;
+  const {
+    reports,
+  } = state;
   const now = new Date().toLocaleDateString().replace(/\//g, '-');
 
   return {

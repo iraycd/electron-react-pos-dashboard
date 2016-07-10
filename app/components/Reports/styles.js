@@ -4,20 +4,19 @@ export default {
     width: '100%',
     height: '82.5vh',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    overflowX: 'auto',
-    padding: 5,
+    overflowX: 'scroll',
   },
   listPaper: {
-    width: '44vh',
-    height: '70%',
+    position: 'relative',
+    width: '50%',
+    height: '100%',
+    flexShrink: 0,
     overflowY: 'auto',
-    margin: '0 auto',
-    marginTop: 10,
-    marginBottom: 10
+    marginRight: 10,
   },
   activity: {
     width: '100%',
     height: '90vh',
+    overflowY: 'auto',
   }
 };

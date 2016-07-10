@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import { Link } from 'react-router';
 import Radium from 'radium';
 
 import { Toolbar, ToolbarGroup, ToolbarTitle } from 'material-ui/Toolbar';
@@ -8,6 +9,8 @@ import Subheader from 'material-ui/Subheader';
 import IconButton from 'material-ui/IconButton';
 import Divider from 'material-ui/Divider';
 import TextField from 'material-ui/TextField';
+import AutoComplete from 'material-ui/AutoComplete';
+import ModeEdit from 'material-ui/svg-icons/editor/mode-edit';
 import Cancel from 'material-ui/svg-icons/content/clear';
 import DatePicker from 'material-ui/DatePicker';
 import styles from './styles';
@@ -24,7 +27,9 @@ export default class Reports extends Component {
     super();
 
     this.state = {
-      selectedDate: ''
+      selectedDate: '',
+      selectedCart: '',
+      quantity: 0,
     };
   }
 
@@ -34,9 +39,12 @@ export default class Reports extends Component {
 
   render() {
     const {
-      reports,
-      activity,
-   } = this.props;
+      props: {
+        reports,
+        activity,
+      },
+      state,
+   } = this;
 
     return (
       <div className="col-md-12">
@@ -46,30 +54,41 @@ export default class Reports extends Component {
               Latest Activity
               <span style={{ fontWeight: 'bold', fontSize: 25, float: 'right', marginRight: 25 }}>
                 ₱{activity && [].concat(...Object.keys(activity)
-                    .map(timestamp => activity[timestamp]))
-                    .map(item => item.quantity * item.price)
-                    .reduce((p, c) => p + c)}
+                                  .filter((timestamp) => !activity[timestamp].changedCartTime)
+                                  .map((timestamp) => activity[timestamp].cart))
+                                .map((item) => item.quantity * item.sellingPrice)
+                                .reduce((p, c) => p + c)}
               </span>
             </Subheader>
             <div style={{ padding: 10 }}>
             {activity && Object.keys(activity).map((timestamp) => (
               <Paper zDepth={2} style={{ padding: 5, marginBottom: 5 }}>
                 <div>
+                  <Link to={`/cashier/${timestamp}`}>
+                    <IconButton touch>
+                      <ModeEdit />
+                    </IconButton>
+                  </Link>
                   &nbsp;
                   <span className="pull-right">
-                    {new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()}
+                    {activity[timestamp].changedCartTime ?
+                      <del>
+                      {new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()}
+                      </del>
+                      : new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()
+                    }
                   </span>
                 </div>
-                {activity[timestamp].map((item) => (
-                  <li>
+                {activity[timestamp].cart.map((item, i) => (
+                  <li key={i}>
                     {item.name} x {item.quantity}
                   </li>
                 ))}
                 <Divider />
                 <span>
-                  Cart Total: ₱
-                  {activity[timestamp].map((item) => item.quantity * item.price)
-                    .reduce((p, c) => p + c)}
+                  Cart Total: ₱{activity[timestamp].cart
+                                  .map((item) => item.quantity * item.sellingPrice)
+                                  .reduce((p, c) => p + c)}
                 </span>
               </Paper>
             ))}
@@ -83,11 +102,7 @@ export default class Reports extends Component {
             </ToolbarGroup>
             <ToolbarGroup>
               <IconButton
-                onTouchTap={
-                  () => {
-                    this.setState({ selectedDate: '' });
-                  }
-                }
+                onTouchTap={() => this.setState({ selectedDate: '' })}
                 touch
               >
                 <Cancel />
@@ -109,29 +124,30 @@ export default class Reports extends Component {
           <div style={styles.pastReports}>
           {Object.keys(reports)
             .map((rep) => (rep !== new Date().toLocaleDateString().replace(/\//g, '-') ? rep : null))
-            .filter((rep) => (this.state.selectedDate ? rep === this.state.selectedDate : rep))
+            .filter((rep) => (state.selectedDate ? rep === state.selectedDate : rep))
             .map((dayMonth) => (
               <Paper style={styles.listPaper}>
                 <List>
                   <Subheader>
                     ({dayMonth}) Total Profit: ₱ {Object.keys(reports[dayMonth])
-                                                    .map((timestamp) => reports[dayMonth][timestamp]
-                                                    .map((item) => item.price * item.quantity)
-                                                    .reduce((p, c) => p + c))
+                                                    .filter((timestamp) => !reports[dayMonth][timestamp].changedCartTime)
+                                                    .map((timestamp) => reports[dayMonth][timestamp].cart
+                                                      .map((item) => item.sellingPrice * item.quantity)
+                                                      .reduce((p, c) => p + c))
                                                     .reduce((p, c) => p + c)}
                   </Subheader>
                   <Divider />
-                {Object.keys(reports[dayMonth]).reverse().map((timestamp) => (
+                {Object.keys(reports[dayMonth]).map((timestamp) => (
                   <ListItem
                     nestedItems={
-                      reports[dayMonth][timestamp].map((item) => (
+                      reports[dayMonth][timestamp].cart.map((item) => (
                         <ListItem
                           nestedItems={[
                             <ListItem>
-                              Price: {`₱${item.price}`}
+                              Price: {`₱${item.sellingPrice}`}
                             </ListItem>,
                             <ListItem>
-                              Subtotal: {`₱${item.quantity * item.price}`}
+                              Subtotal: {`₱${item.quantity * item.sellingPrice}`}
                             </ListItem>,
                             <ListItem>
                               Remaining Stock/s: {item.stock}
@@ -145,10 +161,17 @@ export default class Reports extends Component {
                     }
                     primaryTogglesNestedList
                   >
-                    ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
-                    Cart Total: ₱ {reports[dayMonth][timestamp]
-                                    .map((item) => item.quantity * item.price)
-                                    .reduce((p, c) => p + c)}
+                  <Link to={`/cashier/${timestamp}`}>
+                    <IconButton touch>
+                      <ModeEdit />
+                    </IconButton>
+                  </Link>
+                    <span style={{ textDecoration: reports[dayMonth][timestamp].changedCartTime ? 'line-through' : 'none' }}>
+                      ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
+                      Cart Total: ₱ {reports[dayMonth][timestamp].cart
+                        .map((item) => item.quantity * item.sellingPrice)
+                        .reduce((p, c) => p + c)}
+                    </span>
                   </ListItem>
                 ))}
                 </List>

@@ -6,8 +6,7 @@ import { syncHistoryWithStore } from 'react-router-redux';
 import routes from './routes';
 import configureStore from './redux/store/configureStore.development';
 import './app.global.css';
-// localStorage.removeItem('inventoryItems');
-// localStorage.removeItem('reports');
+localStorage.removeItem('inventoryItems');
 Storage.prototype.setObj = function setObj(key, obj) {
   return this.setItem(key, JSON.stringify(obj));
 };

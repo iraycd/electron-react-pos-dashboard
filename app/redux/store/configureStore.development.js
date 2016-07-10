@@ -30,8 +30,34 @@ const logger = createLogger({
 
 const router = routerMiddleware(hashHistory);
 
+function syncLocalStorage() {
+  return ({ getState }) => next => action => {
+    const { inventory, reports } = getState();
+
+    switch (action.type) {
+      case 'ALL_ITEMS_FETCHED':
+      case 'NEW_ITEM':
+      case 'UPDATE_ITEM':
+      case 'REMOVE_ITEMS':
+      case 'ITEM_STOCK_UPDATED':
+        localStorage.setObj('inventoryItems', inventory.items);
+        console.log('local inventory items synced');
+        break;
+      case 'REPORTS_RETRIEVED':
+      case 'NEW_REPORT':
+      case 'UPDATE_REPORT':
+        localStorage.setObj('reports', reports);
+        console.log('local reports synced');
+        break;
+      default:
+    }
+
+    return next(action);
+  };
+}
+
 const enhancer = compose(
-  applyMiddleware(thunk.withExtraArgument(firebaseAPI), router, logger),
+  applyMiddleware(thunk.withExtraArgument(firebaseAPI), syncLocalStorage(), router, logger),
   window.devToolsExtension ? window.devToolsExtension() : noop => noop
 );
 

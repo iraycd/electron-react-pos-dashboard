@@ -153,7 +153,7 @@ export default class Inventory extends Component {
                           primaryText="Category"
                           leftIcon={<ArrowDropLeft />}
                           menuItems={
-                            categories.map(cat => (
+                            categories.map((cat) => (
                               <MenuItem
                                 value={cat}
                                 primaryText={cat}
@@ -164,7 +164,7 @@ export default class Inventory extends Component {
                           primaryText="Brand"
                           leftIcon={<ArrowDropLeft />}
                           menuItems={
-                            brands.map(brand => (
+                            brands.map((brand) => (
                               <MenuItem
                                 value={brand}
                                 primaryText={brand}
@@ -176,7 +176,7 @@ export default class Inventory extends Component {
                           primaryText="Supplier"
                           leftIcon={<ArrowDropLeft />}
                           menuItems={
-                            suppliers.map(sup => (
+                            suppliers.map((sup) => (
                               <MenuItem
                                 value={sup}
                                 primaryText={sup}
@@ -230,7 +230,7 @@ export default class Inventory extends Component {
                         height="250"
                       />
                       <br />
-                      Category {item.category}
+                      Category: {item.category}
                       <br />
                       Brand: {item.brand}
                       <br />
