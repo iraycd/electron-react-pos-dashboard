@@ -4,7 +4,10 @@ import { connect } from 'react-redux';
 import Analytics from './../components/Analytics';
 
 function mapStateToProps(state) {
+  const { reports } = state;
+
   return {
+    reports,
   };
 }
 

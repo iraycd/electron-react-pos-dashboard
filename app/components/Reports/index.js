@@ -65,7 +65,7 @@ export default class Reports extends Component {
               <Paper zDepth={2} style={{ padding: 5, marginBottom: 5 }}>
                 <div>
                   <Link to={`/cashier/${timestamp}`}>
-                    <IconButton touch>
+                    <IconButton className={activity[timestamp].changedCartTime ? 'hide' : ''} touch>
                       <ModeEdit />
                     </IconButton>
                   </Link>
@@ -161,11 +161,11 @@ export default class Reports extends Component {
                     }
                     primaryTogglesNestedList
                   >
-                  <Link to={`/cashier/${timestamp}`}>
-                    <IconButton touch>
-                      <ModeEdit />
-                    </IconButton>
-                  </Link>
+                    <Link to={`/cashier/${timestamp}`}>
+                      <IconButton className={reports[dayMonth][timestamp].changedCartTime ? 'hide' : ''} touch>
+                        <ModeEdit />
+                      </IconButton>
+                    </Link>
                     <span style={{ textDecoration: reports[dayMonth][timestamp].changedCartTime ? 'line-through' : 'none' }}>
                       ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
                       Cart Total: ₱ {reports[dayMonth][timestamp].cart

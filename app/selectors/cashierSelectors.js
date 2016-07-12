@@ -57,7 +57,7 @@ export const getItems = createSelector(
           const fractionedItem = {
             ...item,
             id: `${item.id}-${quotientFeet}ft`,
-            name: `${item.name} (${quotientFeet}ft)`,
+            name: `(${quotientFeet}ft) ${item.name}`,
             cost: quotientCost,
             feet: quotientFeet,
             totalFeet: totalFeet - getOtherTotalFt,

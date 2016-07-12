@@ -89,12 +89,39 @@ export default class Cashier extends Component {
   }
 
   _handleQuantity = (e = { target: { value: 1 } }) => {
-    const { state } = this;
+    const {
+      props: {
+        reports,
+        cart,
+        params,
+      },
+      state
+    } = this;
     const value = +e.target.value;
+    let getCartTotal = 0;
+    let getReportCartTotal = 0;
+
+    if (params.timestamp) {
+      const date = new Date(params.timestamp.slice(0, -3) * 1000)
+        .toLocaleDateString()
+        .replace(/\//g, '-');
+
+      getCartTotal = cart.map((item) => item.sellingPrice)
+        .reduce((p, c) => p + c) + (state.selectedItem.sellingPrice * state.selectedItem.quantity);
+      getReportCartTotal = reports[date][params.timestamp].cart
+        .map((item) => item.sellingPrice)
+        .reduce((p, c) => p + c);
+    }
 
     if (value > state.selectedItem.stock) {
       this.setState({
+        quantity: value,
         quantityError: `The maximum value is ${state.selectedItem.stock}`,
+      });
+    } else if (params.timestamp && getCartTotal > getReportCartTotal) {
+      this.setState({
+        quantity: value,
+        quantityError: `${getCartTotal} > ${getReportCartTotal}`,
       });
     } else if (value === 0) {
       this.setState({
@@ -111,12 +138,40 @@ export default class Cashier extends Component {
 
   _submitQuantity = (e) => {
     e.preventDefault();
-    const { state } = this;
-    const { actions } = this.props;
-    const { selectedItem, quantity } = state;
-    const item = { ...selectedItem, quantity };
+    const {
+      props: {
+        reports,
+        cart,
+        params,
+        actions,
+      },
+      state
+    } = this;
+    const item = {
+      ...state.selectedItem,
+      quantity: state.quantity
+    };
 
-    if (!state.quantityError && selectedItem !== undefined) {
+    if (params.timestamp) {
+      const date = new Date(params.timestamp.slice(0, -3) * 1000)
+        .toLocaleDateString()
+        .replace(/\//g, '-');
+      const getCartTotal = cart.map((item) => item.sellingPrice)
+        .reduce((p, c) => p + c) + (item.quantity * item.sellingPrice);
+      const getReportCartTotal = reports[date][params.timestamp].cart
+        .map((item) => item.sellingPrice)
+        .reduce((p, c) => p + c);
+
+      if (getCartTotal > getReportCartTotal) {
+        this.setState({
+          quantityError: `${getCartTotal} > ${getReportCartTotal}`
+        });
+
+        return;
+      }
+    }
+
+    if (!state.quantityError && state.selectedItem !== undefined) {
       actions.addCartItem(item);
       this._handleQuantity();
       this._toggleQuantifying();
@@ -137,13 +192,20 @@ export default class Cashier extends Component {
   }
 
   _submitCart = (cart) => {
-    const { actions, reports, params } = this.props;
+    const {
+      props: {
+        actions,
+        reports,
+        params,
+      },
+      state,
+    } = this;
     let reportCart = false;
 
     if (params.timestamp) {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
-        .toLocaleDateString()
-        .replace(/\//g, '-');
+       .toLocaleDateString()
+       .replace(/\//g, '-');
 
       reportCart = {
         cart: reports[date][params.timestamp].cart,
@@ -151,7 +213,7 @@ export default class Cashier extends Component {
       };
     }
 
-    if (cart.length !== 0) {
+    if (!state.quantityError && cart.length !== 0) {
       actions.submitCart(cart, reportCart, (err, msg) => {
         if (err) actions.toggleSnackbar(`Error: ${err}`);
         else actions.toggleSnackbar(`${msg} was synced.`);

@@ -8,6 +8,7 @@ import MenuItem from 'material-ui/MenuItem';
 import ShowChart from 'material-ui/svg-icons/editor/show-chart';
 import Report from 'material-ui/svg-icons/content/report';
 import Accounts from 'material-ui/svg-icons/social/people';
+import Cart from 'material-ui/svg-icons/action/shopping-cart';
 import Folder from 'material-ui/svg-icons/file/folder';
 
 const styles = {
@@ -93,7 +94,7 @@ export default class DashboardLayout extends Component {
           <Link to="/cashier">
             <MenuItem>
               <span className="hidden-xs hidden-sm hidden-md">cashier</span>
-              <Report />
+              <Cart />
             </MenuItem>
           </Link>
         </Paper>

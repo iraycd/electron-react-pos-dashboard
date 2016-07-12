@@ -23,15 +23,26 @@ export default class Sales extends Component {
   }
 
   render() {
+    const {
+      props: {
+        reports,
+      },
+      state,
+    } = this;
     const data = {
       labels: [
-        'Red',
-        'Green',
-        'Yellow'
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
       ],
       datasets: [
         {
-          data: [300, 50, 100],
+          data: Object.keys(reports)
+          .map((dayMonth) => Object.keys(reports[dayMonth]).map((timestamp) => reports[dayMonth][timestamp].cart.slice(0, 7)).length),
           backgroundColor: [
             '#FF6384',
             '#36A2EB',
@@ -44,6 +55,8 @@ export default class Sales extends Component {
           ]
         }]
     };
+    console.log(Object.keys(reports)
+    .map((dayMonth) => Object.keys(reports[dayMonth]).map((timestamp) => reports[dayMonth][timestamp].cart.slice(0, 7)).length));
 
     return (
       <div>
