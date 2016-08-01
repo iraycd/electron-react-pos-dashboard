@@ -7,7 +7,7 @@ import routes from './routes';
 import configureStore from './redux/store/configureStore.development';
 import './app.global.css';
 // localStorage.removeItem('inventoryItems');
-// localStorage.removeItem('reports');
+// localStorage.removeItem('activities');
 Storage.prototype.setObj = function setObj(key, obj) {
   return this.setItem(key, JSON.stringify(obj));
 };
@@ -16,13 +16,13 @@ Storage.prototype.getObj = function getObj(key) {
 };
 
 console.log(localStorage.getObj('inventoryItems'));
-console.log(localStorage.getObj('reports'));
+console.log(localStorage.getObj('activities'));
 
 const store = configureStore({
   inventory: {
     items: localStorage.getObj('inventoryItems') || [],
   },
-  reports: localStorage.getObj('reports') || {},
+  activities: localStorage.getObj('activities') || {},
 });
 const history = syncHistoryWithStore(hashHistory, store);
 

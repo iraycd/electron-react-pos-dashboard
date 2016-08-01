@@ -4,7 +4,7 @@ const REMOVE_CART_ITEM = 'REMOVE_CART_ITEM';
 
 const SUBMIT_CART = 'SUBMIT_CART';
 const CLEAR_CART = 'CLEAR_CART';
-const ADD_REPORT_CART = 'ADD_REPORT_CART';
+const ADD_CART = 'ADD_CART';
 
 export default function reducer(state = [], action) {
   switch (action.type) {
@@ -21,20 +21,20 @@ export default function reducer(state = [], action) {
     case CLEAR_CART:
     case SUBMIT_CART:
       return [];
-    case ADD_REPORT_CART:
+    case ADD_CART:
       return [
         ...state,
-        ...action.reportCart,
+        ...action.Cart,
       ];
     default:
       return state;
   }
 }
 
-export function addReportCart(reportCart) {
+export function addCart(Cart) {
   return {
-    type: ADD_REPORT_CART,
-    reportCart
+    type: ADD_CART,
+    Cart
   };
 }
 
@@ -88,24 +88,17 @@ export function clearCart() {
   };
 }
 
-export function submitCart(cart, reportCart, next) {
+export function submitCart(cart, activityCart, next) {
   return (dispatch, _, { ref, timestamp }) => {
     const date = new Date();
     const dayMonth = date.toLocaleDateString().replace(/\//g, '-');
-    // const itemsToUpdate = {};
 
     cart.forEach((item) => {
       let id = item.id;
       let quantity = item.quantity;
-      // let remainingStock = Math.abs(item.quantity - item.stock);
 
       if (typeof item.id === 'string' && /ft$/.test(item.id)) {
-        // const timesFeet = item.fraction * item.feet;
-        // const totalFeet = timesFeet * (item.stock / item.fraction);
-        // const totalQuantity = item.feet * item.quantity;
-
         id = Number(item.id.replace(/\D+\w+(?!-ft)/, ''));
-        // remainingStock = (totalFeet - totalQuantity) / timesFeet;
         quantity = item.quantity / item.fraction;
       }
 
@@ -113,30 +106,24 @@ export function submitCart(cart, reportCart, next) {
         .transaction((current) => (current - quantity))
         .then(() => next(null, `[#${item.id}]${item.name} stock`))
         .catch(next);
-
-      // itemsToUpdate[`${id}/stock`] = remainingStock;
     });
-
-    // ref.child('inventory').update(itemsToUpdate)
-    //   .then(() => next(null, 'New item stock'))
-    //   .catch(next);
 
     ref.child('.info/serverTimeOffset').on('value', (fbTime) => {
       const now = Date.now() + fbTime.val();
 
-      ref.child(`reports/${dayMonth}/${now}`)
+      ref.child(`activities/${dayMonth}/${now}`)
         .set({ changedCartTime: 0, cart })
         .then(() => next(null, 'Item/s purchase'))
         .catch(next);
 
       dispatch({ type: SUBMIT_CART });
 
-      if (reportCart.timestamp) {
-        const tsDate = new Date(reportCart.timestamp.slice(0, -3) * 1000)
+      if (activityCart.timestamp) {
+        const tsDate = new Date(activityCart.timestamp.slice(0, -3) * 1000)
           .toLocaleDateString()
           .replace(/\//g, '-');
 
-        reportCart.cart.forEach((item) => {
+        activityCart.cart.forEach((item) => {
           let id = item.id;
 
           if (item.feet) {
@@ -153,7 +140,7 @@ export function submitCart(cart, reportCart, next) {
             });
         });
 
-        ref.child(`reports/${tsDate}/${reportCart.timestamp}`)
+        ref.child(`activities/${tsDate}/${activityCart.timestamp}`)
           .update({ changedCartTime: timestamp });
       }
     });

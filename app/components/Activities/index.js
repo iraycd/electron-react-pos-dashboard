@@ -12,13 +12,14 @@ import TextField from 'material-ui/TextField';
 import AutoComplete from 'material-ui/AutoComplete';
 import ModeEdit from 'material-ui/svg-icons/editor/mode-edit';
 import Cancel from 'material-ui/svg-icons/content/clear';
+import Return from 'material-ui/svg-icons/content/undo';
 import DatePicker from 'material-ui/DatePicker';
 import styles from './styles';
 
 @Radium
-export default class Reports extends Component {
+export default class Activities extends Component {
   static propTypes = {
-    reports: PropTypes.object.isRequired,
+    activities: PropTypes.object.isRequired,
     actions: PropTypes.object.isRequired,
     activity: PropTypes.object,
   }
@@ -34,14 +35,15 @@ export default class Reports extends Component {
   }
 
   componentWillMount() {
-    this.props.actions.fetchAllReports();
+    this.props.actions.fetchAll();
   }
 
   render() {
     const {
       props: {
-        reports,
+        activities,
         activity,
+        actions,
       },
       state,
    } = this;
@@ -57,7 +59,7 @@ export default class Reports extends Component {
                                   .filter((timestamp) => !activity[timestamp].changedCartTime)
                                   .map((timestamp) => activity[timestamp].cart))
                                 .map((item) => item.quantity * item.sellingPrice)
-                                .reduce((p, c) => p + c)}
+                                .reduce((p, c) => p + c, 0)}
               </span>
             </Subheader>
             <div style={{ padding: 10 }}>
@@ -69,23 +71,31 @@ export default class Reports extends Component {
                       <ModeEdit />
                     </IconButton>
                   </Link>
+                  <IconButton
+                    onTouchTap={() => actions.removeActivity(timestamp)}
+                    className={activity[timestamp].changedCartTime ? 'hide' : ''}
+                    touch
+                  >
+                    <Return />
+                  </IconButton>
                   &nbsp;
-                  <span className="pull-right">
-                    {activity[timestamp].changedCartTime ?
-                      <del>
-                      {new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()}
-                      </del>
-                      : new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()
-                    }
+                  <span
+                    className="pull-right"
+                    style={{ textDecoration: activity[timestamp].changedCartTime ? 'line-through' : 'none' }}
+                  >
+                    {new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()}
                   </span>
                 </div>
                 {activity[timestamp].cart.map((item, i) => (
-                  <li key={i}>
-                    {item.name} x {item.quantity}
+                  <li
+                    key={i}
+                    style={{ textDecoration: activity[timestamp].changedCartTime ? 'line-through' : 'none' }}
+                  >
+                    {item.name} x {item.quantity} = ₱{item.sellingPrice * item.quantity}
                   </li>
                 ))}
                 <Divider />
-                <span>
+                <span style={{ textDecoration: activity[timestamp].changedCartTime ? 'line-through' : 'none' }}>
                   Cart Total: ₱{activity[timestamp].cart
                                   .map((item) => item.quantity * item.sellingPrice)
                                   .reduce((p, c) => p + c)}
@@ -121,26 +131,26 @@ export default class Reports extends Component {
               />
             </ToolbarGroup>
           </Toolbar>
-          <div style={styles.pastReports}>
-          {Object.keys(reports)
-            .map((rep) => (rep !== new Date().toLocaleDateString().replace(/\//g, '-') ? rep : null))
-            .filter((rep) => (state.selectedDate ? rep === state.selectedDate : rep))
+          <div style={styles.past}>
+          {activities && Object.keys(activities)
+            .map((activity) => (activity !== new Date().toLocaleDateString().replace(/\//g, '-') ? activity : null))
+            .filter((activity) => (state.selectedDate ? activity === state.selectedDate : activity))
             .map((dayMonth) => (
               <Paper style={styles.listPaper}>
                 <List>
                   <Subheader>
-                    ({dayMonth}) Total Profit: ₱ {Object.keys(reports[dayMonth])
-                                                    .filter((timestamp) => !reports[dayMonth][timestamp].changedCartTime)
-                                                    .map((timestamp) => reports[dayMonth][timestamp].cart
+                    ({dayMonth}) Total Profit: ₱ {Object.keys(activities[dayMonth])
+                                                    .filter((timestamp) => !activities[dayMonth][timestamp].changedCartTime)
+                                                    .map((timestamp) => activities[dayMonth][timestamp].cart
                                                       .map((item) => item.sellingPrice * item.quantity)
                                                       .reduce((p, c) => p + c))
-                                                    .reduce((p, c) => p + c)}
+                                                    .reduce((p, c) => p + c, 0)}
                   </Subheader>
                   <Divider />
-                {Object.keys(reports[dayMonth]).map((timestamp) => (
+                {Object.keys(activities[dayMonth]).map((timestamp) => (
                   <ListItem
                     nestedItems={
-                      reports[dayMonth][timestamp].cart.map((item) => (
+                      activities[dayMonth][timestamp].cart.map((item) => (
                         <ListItem
                           nestedItems={[
                             <ListItem>
@@ -162,15 +172,25 @@ export default class Reports extends Component {
                     primaryTogglesNestedList
                   >
                     <Link to={`/cashier/${timestamp}`}>
-                      <IconButton className={reports[dayMonth][timestamp].changedCartTime ? 'hide' : ''} touch>
+                      <IconButton
+                        className={activities[dayMonth][timestamp].changedCartTime ? 'hide' : ''}
+                        touch
+                      >
                         <ModeEdit />
                       </IconButton>
                     </Link>
-                    <span style={{ textDecoration: reports[dayMonth][timestamp].changedCartTime ? 'line-through' : 'none' }}>
+                    <IconButton
+                      onTouchTap={() => actions.removeActivity(timestamp)}
+                      className={activity && [timestamp].changedCartTime ? 'hide' : ''}
+                      touch
+                    >
+                      <Return />
+                    </IconButton>
+                    <span style={{ textDecoration: activities[dayMonth][timestamp].changedCartTime ? 'line-through' : 'none' }}>
                       ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
-                      Cart Total: ₱ {reports[dayMonth][timestamp].cart
-                        .map((item) => item.quantity * item.sellingPrice)
-                        .reduce((p, c) => p + c)}
+                      Cart Total: ₱ {activities[dayMonth][timestamp].cart
+                                      .map((item) => item.quantity * item.sellingPrice)
+                                      .reduce((p, c) => p + c)}
                     </span>
                   </ListItem>
                 ))}

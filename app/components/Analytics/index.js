@@ -25,7 +25,7 @@ export default class Sales extends Component {
   render() {
     const {
       props: {
-        reports,
+        activities,
       },
       state,
     } = this;
@@ -41,8 +41,10 @@ export default class Sales extends Component {
       ],
       datasets: [
         {
-          data: Object.keys(reports)
-          .map((dayMonth) => Object.keys(reports[dayMonth]).map((timestamp) => reports[dayMonth][timestamp].cart.slice(0, 7)).length),
+          data: Object.keys(activities)
+            .map((dayMonth) => Object.keys(activities[dayMonth])
+              .filter((timestamp) => !activities[dayMonth][timestamp].changedCartTime)
+              .map((timestamp) => activities[dayMonth][timestamp].cart.slice(0, 7)).length),
           backgroundColor: [
             '#FF6384',
             '#36A2EB',
@@ -55,8 +57,8 @@ export default class Sales extends Component {
           ]
         }]
     };
-    console.log(Object.keys(reports)
-    .map((dayMonth) => Object.keys(reports[dayMonth]).map((timestamp) => reports[dayMonth][timestamp].cart.slice(0, 7)).length));
+    console.log(Object.keys(activities)
+    .map((dayMonth) => Object.keys(activities[dayMonth]).map((timestamp) => activities[dayMonth][timestamp].cart.slice(0, 7)).length));
 
     return (
       <div>

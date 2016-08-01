@@ -7,7 +7,7 @@ import items from './inventoryItems';
 import accUI from './accountUI';
 import users from './accountUsers';
 import login from './login';
-import reports from './reports';
+import activities from './activities';
 import cashier from './cashier';
 import cart from './cart';
 
@@ -24,7 +24,7 @@ const account = combineReducers({
 const rootReducer = combineReducers({
   inventory,
   account,
-  reports,
+  activities,
   cashier,
   cart,
   login,

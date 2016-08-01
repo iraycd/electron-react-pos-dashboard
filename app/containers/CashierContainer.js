@@ -12,7 +12,7 @@ function mapStateToProps(state) {
   const {
     cashier,
     cart,
-    reports,
+    activities,
   } = state;
 
   return {
@@ -20,7 +20,7 @@ function mapStateToProps(state) {
     items: getItems(state),
     cart,
     cashier,
-    reports,
+    activities,
   };
 }
 

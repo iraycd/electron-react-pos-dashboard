@@ -32,7 +32,7 @@ const router = routerMiddleware(hashHistory);
 
 function syncLocalStorage() {
   return ({ getState }) => next => action => {
-    const { inventory, reports } = getState();
+    const { inventory, activities } = getState();
 
     switch (action.type) {
       case 'ALL_ITEMS_FETCHED':
@@ -43,11 +43,11 @@ function syncLocalStorage() {
         localStorage.setObj('inventoryItems', inventory.items);
         console.log('local inventory items synced');
         break;
-      case 'REPORTS_RETRIEVED':
-      case 'NEW_REPORT':
-      case 'UPDATE_REPORT':
-        localStorage.setObj('reports', reports);
-        console.log('local reports synced');
+      case 'S_RETRIEVED':
+      case 'NEW_':
+      case 'UPDATE_':
+        localStorage.setObj('activities', activities);
+        console.log('local activities synced');
         break;
       default:
     }

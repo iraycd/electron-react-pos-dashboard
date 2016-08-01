@@ -1,5 +1,5 @@
 export default {
-  pastReports: {
+  past: {
     display: 'flex',
     width: '100%',
     height: '82.5vh',

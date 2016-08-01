@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import { Link } from 'react-router';
 import Radium from 'radium';
 
 import Paper from 'material-ui/Paper';
@@ -46,17 +47,17 @@ export default class Cashier extends Component {
   componentWillMount() {
     const {
       params,
-      reports,
+      activities,
       actions,
       items,
     } = this.props;
-    console.log(params.timestamp);
+
     if (params.timestamp) {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
         .toLocaleDateString()
         .replace(/\//g, '-');
 
-      const reportCart = reports[date][params.timestamp].cart.map((rItem) => {
+      const activityCart = activities[date][params.timestamp].cart.map((rItem) => {
         const rItemIndex = items.map((item) => item.id)
           .indexOf(rItem.id);
 
@@ -66,14 +67,15 @@ export default class Cashier extends Component {
         };
       });
 
-      actions.addReportCart(reportCart);
+      actions.clearCart();
+      actions.addCart(activityCart);
     }
 
     actions.fetchInventoryItems();
   }
 
   _toggleQuantifying = (prop = {}, isUpdating = false, next) => {
-    const { props: { cart }, state } = this;
+    const { state } = this;
 
     this.setState({
       isQuantifying: !state.isQuantifying,
@@ -91,7 +93,7 @@ export default class Cashier extends Component {
   _handleQuantity = (e = { target: { value: 1 } }) => {
     const {
       props: {
-        reports,
+        activities,
         cart,
         params,
       },
@@ -99,17 +101,18 @@ export default class Cashier extends Component {
     } = this;
     const value = +e.target.value;
     let getCartTotal = 0;
-    let getReportCartTotal = 0;
+    let getActivitiesTotal = 0;
 
     if (params.timestamp) {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
         .toLocaleDateString()
         .replace(/\//g, '-');
+      const selectedItemCartQuantity = cart.length && cart.map((item) => item.id).indexOf(state.selectedItem.id) > -1 ? cart.filter((item) => item.id === state.selectedItem.id)[0].quantity : 0;
 
-      getCartTotal = cart.map((item) => item.sellingPrice)
-        .reduce((p, c) => p + c) + (state.selectedItem.sellingPrice * state.selectedItem.quantity);
-      getReportCartTotal = reports[date][params.timestamp].cart
-        .map((item) => item.sellingPrice)
+      getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
+        .reduce((p, c) => p + c) + (state.selectedItem.sellingPrice * (value - selectedItemCartQuantity)) : 0;
+      getActivitiesTotal = activities[date][params.timestamp].cart
+        .map((item) => item.sellingPrice * item.quantity)
         .reduce((p, c) => p + c);
     }
 
@@ -118,10 +121,10 @@ export default class Cashier extends Component {
         quantity: value,
         quantityError: `The maximum value is ${state.selectedItem.stock}`,
       });
-    } else if (params.timestamp && getCartTotal > getReportCartTotal) {
+    } else if (params.timestamp && getCartTotal > getActivitiesTotal) {
       this.setState({
         quantity: value,
-        quantityError: `${getCartTotal} > ${getReportCartTotal}`,
+        quantityError: `${getCartTotal} > ${getActivitiesTotal}`,
       });
     } else if (value === 0) {
       this.setState({
@@ -140,7 +143,7 @@ export default class Cashier extends Component {
     e.preventDefault();
     const {
       props: {
-        reports,
+        activities,
         cart,
         params,
         actions,
@@ -156,15 +159,15 @@ export default class Cashier extends Component {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
         .toLocaleDateString()
         .replace(/\//g, '-');
-      const getCartTotal = cart.map((item) => item.sellingPrice)
-        .reduce((p, c) => p + c) + (item.quantity * item.sellingPrice);
-      const getReportCartTotal = reports[date][params.timestamp].cart
-        .map((item) => item.sellingPrice)
+      const getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
+        .reduce((p, c) => p + c) + (item.quantity * item.sellingPrice) : item.quantity * item.sellingPrice;
+      const getActivitiesCartTotal = activities[date][params.timestamp].cart
+        .map((item) => item.sellingPrice * item.quantity)
         .reduce((p, c) => p + c);
 
-      if (getCartTotal > getReportCartTotal) {
+      if (getCartTotal > getActivitiesCartTotal) {
         this.setState({
-          quantityError: `${getCartTotal} > ${getReportCartTotal}`
+          quantityError: `${getCartTotal} > ${getActivitiesCartTotal}`
         });
 
         return;
@@ -195,26 +198,26 @@ export default class Cashier extends Component {
     const {
       props: {
         actions,
-        reports,
+        activities,
         params,
       },
       state,
     } = this;
-    let reportCart = false;
+    let activityCart = false;
 
     if (params.timestamp) {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
        .toLocaleDateString()
        .replace(/\//g, '-');
 
-      reportCart = {
-        cart: reports[date][params.timestamp].cart,
+      activityCart = {
+        cart: activities[date][params.timestamp].cart,
         timestamp: params.timestamp,
       };
     }
 
     if (!state.quantityError && cart.length !== 0) {
-      actions.submitCart(cart, reportCart, (err, msg) => {
+      actions.submitCart(cart, activityCart, (err, msg) => {
         if (err) actions.toggleSnackbar(`Error: ${err}`);
         else actions.toggleSnackbar(`${msg} was synced.`);
       });
@@ -232,6 +235,7 @@ export default class Cashier extends Component {
         tiles,
         cart,
         actions,
+        params,
       },
       state,
     } = this;
@@ -371,14 +375,27 @@ export default class Cashier extends Component {
             </div>
           </div>
         </div>
-        <Paper className="col-md-3">
+        <Paper className="col-md-3" style={styles.cartInterface}>
           <Subheader style={{ height: '7vh' }}>
             <b>Cart</b>
+            <RaisedButton
+              label="Add Cash"
+              onTouchTap={
+                () => this._toggleQuantifying({
+                  name: 'Cash',
+                  quantity: 1,
+                  cost: 1,
+                  sellingPrice: 1,
+                  stock: Infinity
+                })
+              }
+              className={params.timestamp ? '' : 'hide'}
+            />
             <IconButton
               tooltip="Clear cart"
               tooltipPosition="bottom-left"
               onTouchTap={actions.clearCart}
-              style={{ float: 'right' }}
+              className="pull-right"
               touch
             >
               <RemoveCart />
@@ -405,19 +422,21 @@ export default class Cashier extends Component {
             })}
           </List>
           <Paper style={styles.total}>
-            <RaisedButton
-              children={
-                <div style={styles.purchaseButton}>
-                  <span style={{ position: 'absolute', top: 0, left: 10, fontSize: 20 }}>
+            <Link to={params.timestamp ? '/activities' : '/cashier'}>
+              <RaisedButton
+                children={
+                  <div style={styles.purchaseButton}>
+                    <span style={{ position: 'absolute', top: 0, left: 10, fontSize: 20 }}>
                     Total:
-                  </span>
+                    </span>
                   ₱{cart.reduce((p, c) => p + (c.quantity * c.sellingPrice), 0).toLocaleString('en-US')}
-                </div>
-              }
-              onTouchTap={() => this._submitCart(cart)}
-              style={{ width: '100%', height: '100%' }}
-              primary
-            />
+                  </div>
+                }
+                onTouchTap={() => this._submitCart(cart)}
+                style={{ width: '100%', height: '100%' }}
+                primary
+              />
+            </Link>
           </Paper>
         </Paper>
       </div>

@@ -6,7 +6,7 @@ import AppBar from 'material-ui/AppBar';
 import Paper from 'material-ui/Paper';
 import MenuItem from 'material-ui/MenuItem';
 import ShowChart from 'material-ui/svg-icons/editor/show-chart';
-import Report from 'material-ui/svg-icons/content/report';
+import Notifications from 'material-ui/svg-icons/social/notifications';
 import Accounts from 'material-ui/svg-icons/social/people';
 import Cart from 'material-ui/svg-icons/action/shopping-cart';
 import Folder from 'material-ui/svg-icons/file/folder';
@@ -47,7 +47,7 @@ export default class DashboardLayout extends Component {
     super();
 
     this.state = {
-      isExpanded: false
+      isExpanded: true
     };
   }
 
@@ -56,10 +56,14 @@ export default class DashboardLayout extends Component {
   }
 
   render() {
+    const {
+      location,
+      params
+    } = this.props;
     return (
       <div style={styles.bodyStyle}>
         <AppBar
-          title="Admin Dashboard"
+          title={params.timestamp ? `Change Items - ${new Date(params.timestamp.slice(0, -3) * 1000).toLocaleString()}` : location.pathname.replace('/', '')}
           onLeftIconButtonTouchTap={this._toggleDrawer}
           style={styles.appbar}
         />
@@ -67,34 +71,34 @@ export default class DashboardLayout extends Component {
           className={this.state.isExpanded ? 'col-xs-1' : 'hidden'}
           style={styles.sideNavContainer}
         >
-          <Link to="/inventory">
+          <Link to="/Inventory">
             <MenuItem>
-              <span className="hidden-xs hidden-sm hidden-md">inventory</span>
               <Folder />
+              <span className="hidden-xs hidden-sm hidden-md">Inventory</span>
             </MenuItem>
           </Link>
-          <Link to="/accounts">
+          <Link to="/Activities">
             <MenuItem>
-              <span className="hidden-xs hidden-sm hidden-md">accounts</span>
-              <Accounts />
+              <Notifications />
+              <span className="hidden-xs hidden-sm hidden-md">Activities</span>
             </MenuItem>
           </Link>
-          <Link to="/analytics">
+          <Link to="/Analytics">
             <MenuItem>
-              <span className="hidden-xs hidden-sm hidden-md">analytics</span>
               <ShowChart />
+              <span className="hidden-xs hidden-sm hidden-md">Analytics</span>
             </MenuItem>
           </Link>
-          <Link to="/reports">
+          <Link to="/Cashier">
             <MenuItem>
-              <span className="hidden-xs hidden-sm hidden-md">reports</span>
-              <Report />
-            </MenuItem>
-          </Link>
-          <Link to="/cashier">
-            <MenuItem>
-              <span className="hidden-xs hidden-sm hidden-md">cashier</span>
               <Cart />
+              <span className="hidden-xs hidden-sm hidden-md">Cashier</span>
+            </MenuItem>
+          </Link>
+          <Link to="/Accounts">
+            <MenuItem>
+              <Accounts />
+              <span className="hidden-xs hidden-sm hidden-md">Accounts</span>
             </MenuItem>
           </Link>
         </Paper>

@@ -1,6 +1,6 @@
 export default {
   interface: {
-    height: '100vh',
+    height: '90vh',
     overflowY: 'auto',
     padding: 0
   },
@@ -11,7 +11,7 @@ export default {
     cursor: 'pointer',
   },
   cartList: {
-    height: '80vh',
+    height: '70vh',
     overflowY: 'auto',
   },
   total: {
@@ -58,5 +58,8 @@ export default {
     alignItems: 'center',
     fontSize: 40,
     color: 'white',
+  },
+  cartInterface: {
+    height: '90vh'
   }
 };

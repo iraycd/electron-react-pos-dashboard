@@ -159,14 +159,14 @@ export function removeItems(items) {
     dispatch({ type: REMOVE_ITEMS, items });
     items.forEach((item) => {
       storage.child(`itemImages/${item.id}.jpg`).delete()
-      .then(() => console.log(`${item} image deleted`));
+        .then(() => console.log(`${item} image deleted`));
 
       itemsToDel[item.id] = null;
     });
 
     ref.child('inventory')
-    .update(itemsToDel)
-    .then(() => dispatch({ type: REMOVE_ITEMS_SYNCED }));
+      .update(itemsToDel)
+      .then(() => dispatch({ type: REMOVE_ITEMS_SYNCED }));
   };
 }
 
