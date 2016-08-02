@@ -2,17 +2,40 @@ import { createSelector } from 'reselect';
 
 const pattern = (string) => new RegExp(`(${string})+`, 'g');
 const getInventoryItems = (state) => state.inventory.items;
-const getSelectedCategory = (state) => state.cashier.selectedCategory;
+const getSelectedGroup = (state) => state.cashier.selectedGroup;
+const getSelectedFilter = (state) => state.cashier.selectedFilter;
 const getCart = (state) => state.cart;
 
 const getCategories = createSelector(
   [getInventoryItems],
-  items => items.reduce((p, c) => {
+  (items) => items.reduce((p, c) => {
     if (p.indexOf(c.category) > -1) {
       return p;
     }
 
     return [...p, c.category];
+  }, [])
+);
+
+const getBrands = createSelector(
+  [getInventoryItems],
+  (items) => items.reduce((p, c) => {
+    if (p.indexOf(c.brand) > -1) {
+      return p;
+    }
+
+    return [...p, c.brand];
+  }, [])
+);
+
+const getSuppliers = createSelector(
+  [getInventoryItems],
+  (items) => items.reduce((p, c) => {
+    if (p.indexOf(c.supplier) > -1) {
+      return p;
+    }
+
+    return [...p, c.supplier];
   }, [])
 );
 
@@ -76,13 +99,31 @@ export const getItems = createSelector(
   )
 );
 
+// export const getGridTiles = createSelector(
+//   [getItems, getCategories, getSelectedCategory],
+//   (items, categories, selectedCategory = 'all') => (
+//     selectedCategory ?
+//       items.filter((item) => item.category === selectedCategory)
+//       : categories
+//   )
+// );
+
 export const getGridTiles = createSelector(
-  [getItems, getCategories, getSelectedCategory],
-  (items, categories, selectedCategory = 'all') => (
-    selectedCategory ?
-      items.filter((item) => item.category === selectedCategory)
-      : categories
-  )
+  [getItems, getCategories, getBrands, getSuppliers, getSelectedGroup, getSelectedFilter],
+  (items, categories, brands, suppliers, group, filter) => {
+    switch (filter) {
+      case 'All':
+        return items;
+      case 'Category':
+        return group ? items.filter((item) => item.category === group) : categories;
+      case 'Brand':
+        return group ? items.filter((item) => item.brand === group) : brands;
+      case 'Supplier':
+        return group ? items.filter((item) => item.supplier === group) : suppliers;
+      default:
+        return items;
+    }
+  }
 );
 
 // export const getSelectedItems = createSelector(

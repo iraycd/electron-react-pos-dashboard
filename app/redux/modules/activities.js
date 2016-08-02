@@ -36,14 +36,14 @@ export default function reducer(state = {}, action) {
   }
 }
 
-export function removeActivity(activityTimestamp) {
+export function toggleActivity(activityTimestamp) {
   return (dispatch, _, { ref, timestamp }) => {
     const tsDate = new Date(activityTimestamp.slice(0, -3) * 1000)
       .toLocaleDateString()
       .replace(/\//g, '-');
-    console.log('removv');
-    ref.child(`activities/${tsDate}/${activityTimestamp}`)
-      .update({ changedCartTime: timestamp });
+
+    ref.child(`activities/${tsDate}/${activityTimestamp}/changedCartTime`)
+      .transaction((current) => (current ? 0 : timestamp));
   };
 }
 

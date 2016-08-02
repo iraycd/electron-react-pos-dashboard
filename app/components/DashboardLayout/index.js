@@ -8,8 +8,10 @@ import MenuItem from 'material-ui/MenuItem';
 import ShowChart from 'material-ui/svg-icons/editor/show-chart';
 import Notifications from 'material-ui/svg-icons/social/notifications';
 import Accounts from 'material-ui/svg-icons/social/people';
+import Close from 'material-ui/svg-icons/navigation/close';
 import Cart from 'material-ui/svg-icons/action/shopping-cart';
 import Folder from 'material-ui/svg-icons/file/folder';
+import IconButton from 'material-ui/IconButton';
 
 const styles = {
   bodyStyle: {
@@ -64,11 +66,19 @@ export default class DashboardLayout extends Component {
       <div style={styles.bodyStyle}>
         <AppBar
           title={params.timestamp ? `Change Items - ${new Date(params.timestamp.slice(0, -3) * 1000).toLocaleString()}` : location.pathname.replace('/', '')}
+          iconElementLeft={
+            params.timestamp ?
+              <Link to="/Activities">
+                <IconButton>
+                  <Close />
+                </IconButton>
+              </Link> : null
+          }
           onLeftIconButtonTouchTap={this._toggleDrawer}
           style={styles.appbar}
         />
         <Paper
-          className={this.state.isExpanded ? 'col-xs-1' : 'hidden'}
+          className={params.timestamp ? 'hidden' : this.state.isExpanded ? 'col-xs-1' : 'hidden'}
           style={styles.sideNavContainer}
         >
           <Link to="/Inventory">
@@ -104,7 +114,7 @@ export default class DashboardLayout extends Component {
         </Paper>
         <div
           id="children"
-          className={this.state.isExpanded ? 'col-md-11' : 'col-md-12'}
+          className={this.state.isExpanded ? params.timestamp ? 'col-md-12' : 'col-md-11' : 'col-md-12'}
           style={styles.mainContent}
         >
           {this.props.children}

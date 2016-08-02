@@ -72,8 +72,7 @@ export default class Activities extends Component {
                     </IconButton>
                   </Link>
                   <IconButton
-                    onTouchTap={() => actions.removeActivity(timestamp)}
-                    className={activity[timestamp].changedCartTime ? 'hide' : ''}
+                    onTouchTap={() => actions.toggleActivity(timestamp)}
                     touch
                   >
                     <Return />

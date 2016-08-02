@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import Radium from 'radium';
+import EventListener from 'react-event-listener';
 
 import Paper from 'material-ui/Paper';
 import { GridList, GridTile } from 'material-ui/GridList';
@@ -25,6 +26,7 @@ import Cancel from 'material-ui/svg-icons/content/clear';
 import ViewList from 'material-ui/svg-icons/action/view-list';
 import Info from 'material-ui/svg-icons/action/info-outline';
 import RemoveCart from 'material-ui/svg-icons/action/remove-shopping-cart';
+import DropDownMenu from 'material-ui/DropDownMenu';
 import styles from './styles';
 
 @Radium
@@ -41,6 +43,7 @@ export default class Cashier extends Component {
       selectedItem: {},
       quantity: 1,
       quantityError: '',
+      searchText: '',
     };
   }
 
@@ -100,31 +103,33 @@ export default class Cashier extends Component {
       state
     } = this;
     const value = +e.target.value;
-    let getCartTotal = 0;
-    let getActivitiesTotal = 0;
+    // let getCartTotal = 0;
+    // let getActivitiesTotal = 0;
+    //
+    // if (params.timestamp) {
+    //   const date = new Date(params.timestamp.slice(0, -3) * 1000)
+    //     .toLocaleDateString()
+    //     .replace(/\//g, '-');
+    //   const selectedItemCartQuantity = cart.length && cart.map((item) => item.id).indexOf(state.selectedItem.id) > -1 ? cart.filter((item) => item.id === state.selectedItem.id)[0].quantity : 0;
+    //
+    //   getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
+    //     .reduce((p, c) => p + c) + (state.selectedItem.sellingPrice * (value - selectedItemCartQuantity)) : 0;
+    //   getActivitiesTotal = activities[date][params.timestamp].cart
+    //     .map((item) => item.sellingPrice * item.quantity)
+    //     .reduce((p, c) => p + c);
+    // }
 
-    if (params.timestamp) {
-      const date = new Date(params.timestamp.slice(0, -3) * 1000)
-        .toLocaleDateString()
-        .replace(/\//g, '-');
-      const selectedItemCartQuantity = cart.length && cart.map((item) => item.id).indexOf(state.selectedItem.id) > -1 ? cart.filter((item) => item.id === state.selectedItem.id)[0].quantity : 0;
-
-      getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
-        .reduce((p, c) => p + c) + (state.selectedItem.sellingPrice * (value - selectedItemCartQuantity)) : 0;
-      getActivitiesTotal = activities[date][params.timestamp].cart
-        .map((item) => item.sellingPrice * item.quantity)
-        .reduce((p, c) => p + c);
-    }
+    // if (params.timestamp && getCartTotal > getActivitiesTotal) {
+    //   this.setState({
+    //     quantity: value,
+    //     quantityError: `${getCartTotal} > ${getActivitiesTotal}`,
+    //   });
+    // }
 
     if (value > state.selectedItem.stock) {
       this.setState({
         quantity: value,
         quantityError: `The maximum value is ${state.selectedItem.stock}`,
-      });
-    } else if (params.timestamp && getCartTotal > getActivitiesTotal) {
-      this.setState({
-        quantity: value,
-        quantityError: `${getCartTotal} > ${getActivitiesTotal}`,
       });
     } else if (value === 0) {
       this.setState({
@@ -155,24 +160,24 @@ export default class Cashier extends Component {
       quantity: state.quantity
     };
 
-    if (params.timestamp) {
-      const date = new Date(params.timestamp.slice(0, -3) * 1000)
-        .toLocaleDateString()
-        .replace(/\//g, '-');
-      const getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
-        .reduce((p, c) => p + c) + (item.quantity * item.sellingPrice) : item.quantity * item.sellingPrice;
-      const getActivitiesCartTotal = activities[date][params.timestamp].cart
-        .map((item) => item.sellingPrice * item.quantity)
-        .reduce((p, c) => p + c);
-
-      if (getCartTotal > getActivitiesCartTotal) {
-        this.setState({
-          quantityError: `${getCartTotal} > ${getActivitiesCartTotal}`
-        });
-
-        return;
-      }
-    }
+    // if (params.timestamp) {
+    //   const date = new Date(params.timestamp.slice(0, -3) * 1000)
+    //     .toLocaleDateString()
+    //     .replace(/\//g, '-');
+    //   const getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
+    //     .reduce((p, c) => p + c) + (item.quantity * item.sellingPrice) : item.quantity * item.sellingPrice;
+    //   const getActivitiesCartTotal = activities[date][params.timestamp].cart
+    //     .map((item) => item.sellingPrice * item.quantity)
+    //     .reduce((p, c) => p + c);
+    //
+    //   if (getCartTotal > getActivitiesCartTotal) {
+    //     this.setState({
+    //       quantityError: `${getCartTotal} > ${getActivitiesCartTotal}`
+    //     });
+    //
+    //     return;
+    //   }
+    // }
 
     if (!state.quantityError && state.selectedItem !== undefined) {
       actions.addCartItem(item);
@@ -224,12 +229,25 @@ export default class Cashier extends Component {
     }
   }
 
+  _handleSearch = (e) => {
+    if (e.which === 8) {
+      this.setState({
+        searchText: this.state.searchText.slice(0, -1)
+      });
+    } else if (e.which === 32 || e.which <= 90 && e.which >= 48) {
+      this.setState({
+        searchText: this.state.searchText + e.key
+      });
+    }
+  }
+
   render() {
     const {
       props: {
         cashier: {
-          selectedCategory,
           snackMessage,
+          selectedFilter,
+          selectedGroup
         },
         items,
         tiles,
@@ -246,7 +264,8 @@ export default class Cashier extends Component {
     );
 
     return (
-      <div onKeyUp={console.log}>
+      <div>
+        <EventListener target={document} onKeyUp={this._handleSearch} capture />
         <Snackbar
           open={snackMessage}
           message={snackMessage}
@@ -297,13 +316,22 @@ export default class Cashier extends Component {
         <div className="col-md-9" style={styles.interface}>
           <div className="col-md-12" style={{ padding: 0, marginBottom: 15 }}>
             <AppBar
-              title={selectedCategory || 'Categories'}
-              showMenuIconButton={selectedCategory !== ''}
+              title={
+                selectedGroup ||
+                  <DropDownMenu value={selectedFilter} onChange={actions.selectFilter}>
+                    <MenuItem value="All" primaryText="All" />
+                    <MenuItem value="Category" primaryText="Category" />
+                    <MenuItem value="Brand" primaryText="Brand" />
+                    <MenuItem value="Supplier" primaryText="Supplier" />
+                  </DropDownMenu>
+            }
+              showMenuIconButton={selectedGroup !== ''}
               iconElementLeft={
-                <IconButton onTouchTap={() => actions.selectCategory('')} touch>
+                <IconButton onTouchTap={() => actions.selectGroup('')} touch>
                   <Back />
                 </IconButton>
               }
+              iconElementRight={<h3>{state.searchText}</h3>}
             />
           </div>
           <div style={tiles.length > 0 ? styles.hide : styles.tilesLoader}>
@@ -315,62 +343,63 @@ export default class Cashier extends Component {
                 cols={4}
                 cellHeight={220}
               >
-                {tiles.map((tile, i) => (
-                  <Paper
-                    zDepth={2}
-                    style={
-                      isCartItem(tile.id) ?
-                        styles.hide : styles.gridTilePaper
-                    }
-                  >
-                    <GridTile
-                      key={i}
-                      title={
-                        tile.name ?
-                          <span style={{ fontSize: '2.5rem', }}>{tile.name}</span>
-                          : <span style={{ fontSize: '2.5rem', }}>{tile}</span>
-                      }
-                      titlePosition={tile.name ? 'bottom' : 'top'}
-                      onTouchTap={tile.name ? () => tile.stock && this._toggleQuantifying(tile) : () => actions.selectCategory(tile)}
-                      style={styles.gridTile}
-                      subtitle={
-                        tile.sellingPrice ?
-                          <h2 style={{ margin: 0 }}>
-                            <span>Price: ₱<b>{Math.floor(tile.sellingPrice)}</b></span>
-                            &nbsp; <br />
-                            Stock: <b>{Math.floor(tile.stock) || 'Out of Stock'}</b>
-                          </h2>
-                          : <h2 style={{ margin: 0 }}>{items.filter((item) => item.category === tile).length} item/s</h2>
-                      }
-                      actionIcon={
-                        tile.name ?
-                          (<IconButton onTouchTap={(e) => e.stopPropagation()} touch>
-                            <Info color="#EEEEEE" />
-                          </IconButton>) :
-                          (<IconMenu
-                            onTouchTap={(e) => e.stopPropagation()}
-                            iconButtonElement={<IconButton><ViewList color="#EEEEEE" /></IconButton>}
-                            touch
-                          >
-                            {items.filter((item) => item.category === tile && cart.map((cItem) => cItem.id)
-                              .indexOf(item.id) === -1)
-                              .map((item) => (
-                                <MenuItem
-                                  key={item.id}
-                                  onTouchTap={() => this._toggleQuantifying(item)}
-                                  primaryText={item.name}
-                                />))}
-                          </IconMenu>)
+                {tiles.filter((tile) => new RegExp(`(${state.searchText})+`, 'ig').test(tile.name || tile))
+                  .map((tile, i) => (
+                    <Paper
+                      zDepth={2}
+                      style={
+                        isCartItem(tile.id) ?
+                          styles.hide : styles.gridTilePaper
                       }
                     >
-                      <img
-                        src={tile.image || tile.image === '' ? './static/placeholder.jpg' : './static/category.png'}
-                        alt="placeholder"
-                        style={styles.images}
-                      />
-                    </GridTile>
-                  </Paper>
-                ))}
+                      <GridTile
+                        key={i}
+                        title={
+                          tile.name ?
+                            <span style={{ fontSize: '2.5rem', }}>{tile.name}</span>
+                            : <span style={{ fontSize: '2.5rem', }}>{tile}</span>
+                        }
+                        titlePosition={tile.name ? 'bottom' : 'top'}
+                        onTouchTap={tile.name ? () => tile.stock && this._toggleQuantifying(tile) : () => actions.selectGroup(tile)}
+                        style={styles.gridTile}
+                        subtitle={
+                          tile.sellingPrice ?
+                            <h2 style={{ margin: 0 }}>
+                              <span>Price: ₱<b>{Math.floor(tile.sellingPrice)}</b></span>
+                              &nbsp; <br />
+                              Stock: <b>{Math.floor(tile.stock) || 'Out of Stock'}</b>
+                            </h2>
+                            : <h2 style={{ margin: 0 }}>{items.filter((item) => item.category === tile).length} item/s</h2>
+                        }
+                        actionIcon={
+                          tile.name ?
+                            (<IconButton onTouchTap={(e) => e.stopPropagation()} touch>
+                              <Info color="#EEEEEE" />
+                            </IconButton>) :
+                            (<IconMenu
+                              onTouchTap={(e) => e.stopPropagation()}
+                              iconButtonElement={<IconButton><ViewList color="#EEEEEE" /></IconButton>}
+                              touch
+                            >
+                              {items.filter((item) => item.category === tile && cart.map((cItem) => cItem.id)
+                                .indexOf(item.id) === -1)
+                                .map((item) => (
+                                  <MenuItem
+                                    key={item.id}
+                                    onTouchTap={() => this._toggleQuantifying(item)}
+                                    primaryText={item.name}
+                                  />))}
+                            </IconMenu>)
+                        }
+                      >
+                        <img
+                          src={tile.image || tile.image === '' ? './static/placeholder.jpg' : './static/category.png'}
+                          alt="placeholder"
+                          style={styles.images}
+                        />
+                      </GridTile>
+                    </Paper>
+                  ))}
               </GridList>
             </div>
           </div>
@@ -378,19 +407,6 @@ export default class Cashier extends Component {
         <Paper className="col-md-3" style={styles.cartInterface}>
           <Subheader style={{ height: '7vh' }}>
             <b>Cart</b>
-            <RaisedButton
-              label="Add Cash"
-              onTouchTap={
-                () => this._toggleQuantifying({
-                  name: 'Cash',
-                  quantity: 1,
-                  cost: 1,
-                  sellingPrice: 1,
-                  stock: Infinity
-                })
-              }
-              className={params.timestamp ? '' : 'hide'}
-            />
             <IconButton
               tooltip="Clear cart"
               tooltipPosition="bottom-left"
@@ -422,7 +438,7 @@ export default class Cashier extends Component {
             })}
           </List>
           <Paper style={styles.total}>
-            <Link to={params.timestamp ? '/activities' : '/cashier'}>
+            <Link to={params.timestamp ? '/Activities' : '/Cashier'}>
               <RaisedButton
                 children={
                   <div style={styles.purchaseButton}>
