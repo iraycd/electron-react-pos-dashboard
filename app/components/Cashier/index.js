@@ -81,7 +81,7 @@ export default class Cashier extends Component {
     const { state } = this;
 
     this.setState({
-      isQuantifying: !state.isQuantifying,
+      isQuantifying: prop && !state.isQuantifying,
       selectedItem: prop,
       quantity: prop.quantity || 1,
       quantityError: '',
@@ -234,7 +234,15 @@ export default class Cashier extends Component {
       this.setState({
         searchText: this.state.searchText.slice(0, -1)
       });
-    } else if (e.which === 32 || e.which <= 90 && e.which >= 48) {
+    }
+
+    if (e.which === 27) {
+      this.setState({
+        searchText: ''
+      });
+    }
+
+    if (e.which === 32 || e.which <= 90 && e.which >= 48) {
       this.setState({
         searchText: this.state.searchText + e.key
       });
@@ -319,10 +327,10 @@ export default class Cashier extends Component {
               title={
                 selectedGroup ||
                   <DropDownMenu value={selectedFilter} onChange={actions.selectFilter}>
-                    <MenuItem value="All" primaryText="All" />
-                    <MenuItem value="Category" primaryText="Category" />
-                    <MenuItem value="Brand" primaryText="Brand" />
-                    <MenuItem value="Supplier" primaryText="Supplier" />
+                    <MenuItem value="all" primaryText="All" />
+                    <MenuItem value="category" primaryText="Category" />
+                    <MenuItem value="brand" primaryText="Brand" />
+                    <MenuItem value="supplier" primaryText="Supplier" />
                   </DropDownMenu>
             }
               showMenuIconButton={selectedGroup !== ''}
@@ -331,7 +339,18 @@ export default class Cashier extends Component {
                   <Back />
                 </IconButton>
               }
-              iconElementRight={<h3>{state.searchText}</h3>}
+              iconElementRight={
+                <div>
+                  <IconButton
+                    onTouchTap={() => this.setState({ searchText: '' })}
+                    className={state.searchText ? '' : 'hidden'}
+                    touch
+                  >
+                    <Cancel />
+                  </IconButton>
+                  <h3 style={{ display: 'inline-block' }}>{state.searchText}</h3>
+                </div>
+              }
             />
           </div>
           <div style={tiles.length > 0 ? styles.hide : styles.tilesLoader}>
@@ -369,7 +388,7 @@ export default class Cashier extends Component {
                               &nbsp; <br />
                               Stock: <b>{Math.floor(tile.stock) || 'Out of Stock'}</b>
                             </h2>
-                            : <h2 style={{ margin: 0 }}>{items.filter((item) => item.category === tile).length} item/s</h2>
+                            : <h2 style={{ margin: 0 }}>{items.filter((item) => item[selectedFilter] === tile).length} item/s</h2>
                         }
                         actionIcon={
                           tile.name ?
@@ -381,7 +400,7 @@ export default class Cashier extends Component {
                               iconButtonElement={<IconButton><ViewList color="#EEEEEE" /></IconButton>}
                               touch
                             >
-                              {items.filter((item) => item.category === tile && cart.map((cItem) => cItem.id)
+                              {items.filter((item) => item[selectedFilter] === tile && cart.map((cItem) => cItem.id)
                                 .indexOf(item.id) === -1)
                                 .map((item) => (
                                   <MenuItem

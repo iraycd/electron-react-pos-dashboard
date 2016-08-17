@@ -44,6 +44,7 @@ export default class Activities extends Component {
         activities,
         activity,
         actions,
+        wew
       },
       state,
    } = this;

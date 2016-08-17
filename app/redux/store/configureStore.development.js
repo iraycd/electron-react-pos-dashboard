@@ -42,12 +42,13 @@ function syncLocalStorage() {
       case 'ITEM_STOCK_UPDATED':
         localStorage.setObj('inventoryItems', inventory.items);
         console.log('local inventory items synced');
+        console.log(localStorage.getObj('inventoryItems'));
         break;
-      case 'S_RETRIEVED':
-      case 'NEW_':
-      case 'UPDATE_':
+      case 'ACTIVITIES_RETRIEVED':
+      case 'NEW_ACTIVITY':
+      case 'UPDATE_ACTIVIES':
         localStorage.setObj('activities', activities);
-        console.log('local activities synced');
+        console.log(localStorage.getObj('activities'));
         break;
       default:
     }

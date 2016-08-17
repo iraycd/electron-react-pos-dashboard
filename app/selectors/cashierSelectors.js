@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-const pattern = (string) => new RegExp(`(${string})+`, 'g');
+// const pattern = (string) => new RegExp(`(${string})+`, 'g');
 const getInventoryItems = (state) => state.inventory.items;
 const getSelectedGroup = (state) => state.cashier.selectedGroup;
 const getSelectedFilter = (state) => state.cashier.selectedFilter;
@@ -99,6 +99,20 @@ export const getItems = createSelector(
   )
 );
 
+export const getGridTiles = createSelector(
+  [getItems, getCategories, getSuppliers, getBrands, getSelectedGroup, getSelectedFilter],
+  (items, category, supplier, brand, group, filter) => {
+    const tiles = {
+      all: items,
+      category,
+      supplier,
+      brand,
+    };
+
+    return group ? items.filter((item) => item[filter] === group) : tiles[filter];
+  }
+);
+
 // export const getGridTiles = createSelector(
 //   [getItems, getCategories, getSelectedCategory],
 //   (items, categories, selectedCategory = 'all') => (
@@ -108,23 +122,6 @@ export const getItems = createSelector(
 //   )
 // );
 
-export const getGridTiles = createSelector(
-  [getItems, getCategories, getBrands, getSuppliers, getSelectedGroup, getSelectedFilter],
-  (items, categories, brands, suppliers, group, filter) => {
-    switch (filter) {
-      case 'All':
-        return items;
-      case 'Category':
-        return group ? items.filter((item) => item.category === group) : categories;
-      case 'Brand':
-        return group ? items.filter((item) => item.brand === group) : brands;
-      case 'Supplier':
-        return group ? items.filter((item) => item.supplier === group) : suppliers;
-      default:
-        return items;
-    }
-  }
-);
 
 // export const getSelectedItems = createSelector(
 //   [getSelectedIndexes, getInventoryItems],

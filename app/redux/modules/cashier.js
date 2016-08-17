@@ -4,7 +4,7 @@ const TOGGLE_SNACKBAR = 'TOGGLE_SNACKBAR';
 
 const init = {
   selectedGroup: '',
-  selectedFilter: 'All',
+  selectedFilter: 'all',
   snackMessage: '',
   searchText: ''
 };

@@ -15,14 +15,17 @@ Storage.prototype.getObj = function getObj(key) {
   return JSON.parse(this.getItem(key));
 };
 
-console.log(localStorage.getObj('inventoryItems'));
-console.log(localStorage.getObj('activities'));
-
+const cachedItems = localStorage.getObj('inventoryItems');
+const cachedActivities = localStorage.getObj('activities');
+const cachedItemsFiltered = cachedItems ? cachedItems.filter((item) => item !== null) : [];
+const cachedActivitiesFiltered = cachedActivities ? Object.keys(cachedActivities).filter((activity) => cachedActivities[activity] !== null) : {};
+console.log(cachedActivities);
+console.log(cachedItems);
 const store = configureStore({
   inventory: {
-    items: localStorage.getObj('inventoryItems') || [],
+    items: cachedItemsFiltered
   },
-  activities: localStorage.getObj('activities') || {},
+  activities: cachedActivitiesFiltered,
 });
 const history = syncHistoryWithStore(hashHistory, store);
 
