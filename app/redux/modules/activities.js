@@ -2,7 +2,7 @@ const FETCH_ACTIVITIES = 'FETCH_ACTIVITIES';
 
 const ACTIVITIES_RETRIEVED = 'ACTIVITIES_RETRIEVED';
 const NEW_ACTIVITY = 'NEW_ACTIVITY';
-const UPDATE_ACTIVIES = 'UPDATE_ACTIVIES';
+const UPDATE_ACTIVITIES = 'UPDATE_ACTIVITIES';
 // const REMOVE_ACTIVITY = 'REMOVE_ACTIVITY';
 
 export default function reducer(state = {}, action) {
@@ -19,7 +19,7 @@ export default function reducer(state = {}, action) {
           [action.timestamp]: action.newActivity
         }
       };
-    case UPDATE_ACTIVIES:
+    case UPDATE_ACTIVITIES:
       return {
         ...state,
         [action.dayMonth]: {
@@ -47,7 +47,7 @@ export function toggleActivity(activityTimestamp) {
   };
 }
 
-export function fetchAll() {
+export function fetchAllActivities() {
   return (dispatch, getState, { ref }) => {
     dispatch({ type: FETCH_ACTIVITIES });
     ref.child('activities').once('value')
@@ -69,9 +69,8 @@ export function fetchAll() {
           ref.child('activities').on('child_changed', (snap) => {
             const activities = snap.val();
             const dayMonth = snap.key;
-            console.log('haheheupdate');
-            console.log(activities);
-            dispatch({ type: UPDATE_ACTIVIES, activities, dayMonth });
+
+            dispatch({ type: UPDATE_ACTIVITIES, activities, dayMonth });
           });
         });
       });

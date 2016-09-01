@@ -35,20 +35,19 @@ export default class Activities extends Component {
   }
 
   componentWillMount() {
-    this.props.actions.fetchAll();
+    // FIXME: listeners gets duplicated everytime this rerenders put this into onhook or in App.js
+    this.props.actions.fetchAllActivities();
   }
 
   render() {
-    const {
-      props: {
-        activities,
-        activity,
-        actions,
-        wew
-      },
-      state,
-   } = this;
+    const { activities, activity, actions, } = this.props;
 
+    if (!activities || !activity) {
+      return (
+        <h1>loading...</h1>
+      );
+    }
+    // FIXME: no data on activity will cause an error
     return (
       <div className="col-md-12">
         <div className="col-md-4">
@@ -132,9 +131,9 @@ export default class Activities extends Component {
             </ToolbarGroup>
           </Toolbar>
           <div style={styles.past}>
-          {activities && Object.keys(activities)
+          {Object.keys(activities)
             .map((activity) => (activity !== new Date().toLocaleDateString().replace(/\//g, '-') ? activity : null))
-            .filter((activity) => (state.selectedDate ? activity === state.selectedDate : activity))
+            .filter((activity) => (this.state.selectedDate ? activity === this.state.selectedDate : activity))
             .map((dayMonth) => (
               <Paper style={styles.listPaper}>
                 <List>
@@ -147,7 +146,7 @@ export default class Activities extends Component {
                                                     .reduce((p, c) => p + c, 0)}
                   </Subheader>
                   <Divider />
-                {Object.keys(activities[dayMonth]).map((timestamp) => (
+                {activities && Object.keys(activities[dayMonth]).map((timestamp) => (
                   <ListItem
                     nestedItems={
                       activities[dayMonth][timestamp].cart.map((item) => (
@@ -181,7 +180,7 @@ export default class Activities extends Component {
                     </Link>
                     <IconButton
                       onTouchTap={() => actions.removeActivity(timestamp)}
-                      className={activity && [timestamp].changedCartTime ? 'hide' : ''}
+                      className={[timestamp].changedCartTime ? 'hide' : ''}
                       touch
                     >
                       <Return />

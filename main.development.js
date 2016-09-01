@@ -38,7 +38,7 @@ app.on('ready', async () => {
     minWidth: 950,
     minHeight: 700
   });
-
+  mainWindow.openDevTools();
   mainWindow.maximize();
 
   mainWindow.loadURL(`file://${__dirname}/app/app.html`);

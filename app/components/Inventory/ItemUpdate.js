@@ -6,6 +6,7 @@ import TableRowColumn from 'material-ui/Table/TableRowColumn';
 import TextField from 'material-ui/TextField';
 import Done from 'material-ui/svg-icons/action/done';
 import Cancel from 'material-ui/svg-icons/content/clear';
+import AutoComplete from 'material-ui/AutoComplete';
 import IconButton from 'material-ui/IconButton';
 
 @reduxForm({
@@ -65,6 +66,7 @@ class ItemUpdate extends Component {
       item: { id },
       selected,
       editRowItem,
+      itemsName,
     } = this.props;
 
     return (
@@ -74,13 +76,19 @@ class ItemUpdate extends Component {
             {...fields.id}
             type="number"
             min={1}
-            step="any"
             onFocus={this._onFocus}
+            step={1}
             autoFocus
           />
         </TableRowColumn>
         <TableRowColumn>
-          <TextField {...fields.name} />
+          <AutoComplete
+            {...fields.name}
+            searchText={fields.name.value}
+            dataSource={itemsName}
+            filter={AutoComplete.fuzzyFilter}
+            openOnFocus
+          />
         </TableRowColumn>
         <TableRowColumn>
           <TextField

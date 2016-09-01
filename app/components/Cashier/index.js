@@ -126,21 +126,25 @@ export default class Cashier extends Component {
     //   });
     // }
 
-    if (value > state.selectedItem.stock) {
-      this.setState({
-        quantity: value,
-        quantityError: `The maximum value is ${state.selectedItem.stock}`,
-      });
-    } else if (value === 0) {
-      this.setState({
-        quantity: value,
-        quantityError: 'The minimum value is 1',
-      });
-    } else {
-      this.setState({
-        quantity: value,
-        quantityError: '',
-      });
+    if (value.toString().indexOf('.') === -1) {
+      if (value > state.selectedItem.stock) {
+        if (!state.quantityError) {
+          this.setState({
+            quantity: value,
+            quantityError: `The maximum value is ${Math.floor(state.selectedItem.stock)}`,
+          });
+        }
+      } else if (value === 0) {
+        this.setState({
+          quantity: value,
+          quantityError: 'The minimum value is 1',
+        });
+      } else {
+        this.setState({
+          quantity: value,
+          quantityError: '',
+        });
+      }
     }
   }
 
@@ -230,22 +234,24 @@ export default class Cashier extends Component {
   }
 
   _handleSearch = (e) => {
-    if (e.which === 8) {
-      this.setState({
-        searchText: this.state.searchText.slice(0, -1)
-      });
-    }
+    if (!this.state.isQuantifying) {
+      if (e.which === 8) {
+        this.setState({
+          searchText: this.state.searchText.slice(0, -1)
+        });
+      }
 
-    if (e.which === 27) {
-      this.setState({
-        searchText: ''
-      });
-    }
+      if (e.which === 27) {
+        this.setState({
+          searchText: ''
+        });
+      }
 
-    if (e.which === 32 || e.which <= 90 && e.which >= 48) {
-      this.setState({
-        searchText: this.state.searchText + e.key
-      });
+      if (e.which === 32 || e.which <= 90 && e.which >= 48) {
+        this.setState({
+          searchText: this.state.searchText + e.key
+        });
+      }
     }
   }
 
@@ -292,6 +298,7 @@ export default class Cashier extends Component {
               type="number"
               step="any"
               min={1}
+              step={1}
               name="quantity"
               value={state.quantity}
               onChange={this._handleQuantity}

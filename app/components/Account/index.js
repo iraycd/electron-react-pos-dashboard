@@ -39,10 +39,7 @@ export default class Accounts extends Component {
   }
 
   render() {
-    const {
-      actions,
-      users,
-    } = this.props;
+    const { actions, users, } = this.props;
 
     const IconButtonElement = (
       <IconButton

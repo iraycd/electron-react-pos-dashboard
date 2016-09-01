@@ -159,8 +159,8 @@ export default class ItemSetup extends Component {
               floatingLabelText="Category"
               filter={AutoComplete.fuzzyFilter}
               dataSource={categories}
-              onUpdateInput={val => fields.category.onChange(val)}
-              onNewRequest={val => {
+              onUpdateInput={(val) => fields.category.onChange(val)}
+              onNewRequest={(val) => {
                 setTimeout(() => this.refs.brandField.focus(), 500);
                 fields.category.onChange(val);
               }}

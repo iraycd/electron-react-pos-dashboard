@@ -211,6 +211,7 @@ export default class Inventory extends Component {
                       initialValues={initialValues}
                       loadInitialValues={actions.loadInitialValues}
                       selected={this.state.selectedRows.indexOf(i) !== -1}
+                      itemsName={items.map((item) => item.name)}
                     />
                   );
                 }
