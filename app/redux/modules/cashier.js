@@ -2,6 +2,10 @@ const SELECT_GROUP = 'SELECT_GROUP';
 const SELECT_FILTER = 'SELECT_FILTER';
 const TOGGLE_SNACKBAR = 'TOGGLE_SNACKBAR';
 
+const NEW_ITEM_ADDED = 'NEW_ITEM_ADDED';
+const ITEM_UPDATED = 'ITEM_UPDATED';
+const ITEM_REMOVED = 'ITEM_REMOVED';
+
 const init = {
   selectedGroup: '',
   selectedFilter: 'all',
@@ -25,6 +29,27 @@ export default function reducer(state = init, action) {
       return {
         ...state,
         snackMessage: action.snackMessage,
+      };
+    case NEW_ITEM_ADDED:
+      return {
+        ...state,
+        items: [
+          ...state.items,
+          action.item
+        ],
+        snackMessage: `${action.item.name}(#${action.item.id}) was added.`,
+      };
+    case ITEM_UPDATED:
+      return {
+        ...state,
+        items: state.items.map(item => (item.id === action.item.id ? action.item : item)),
+        snackMessage: `${action.item.name}(#${action.item.id}) was updated.`,
+      };
+    case ITEM_REMOVED:
+      return {
+        ...state,
+        items: state.items.filter(item => item.id === action.item.id),
+        snackMessage: `${action.item.name}(#${action.item.id}) was removed.`
       };
     default:
       return state;
@@ -50,5 +75,32 @@ export function toggleSnackbar(snackMessage) {
   return {
     type: TOGGLE_SNACKBAR,
     snackMessage,
+  };
+}
+
+export function listenToFirebase() {
+  return (dispatch, _, { ref }) => {
+    ref.child('.info/serverTimeOffset').on('value', fbTime => {
+      const now = Date.now() + fbTime.val();
+      const child = ref.child('inventory');
+      const query = child.orderByChild('timestamp').startAt(now);
+
+      query.on('child_added', (snap) => {
+        const item = snap.val();
+
+        dispatch({ type: NEW_ITEM_ADDED, item });
+      });
+
+      child.on('child_changed', (snap) => {
+        const item = snap.val();
+
+        dispatch({ type: ITEM_UPDATED, item });
+      });
+      child.on('child_removed', (snap) => {
+        const item = snap.val();
+
+        dispatch({ type: ITEM_REMOVED, item });
+      });
+    });
   };
 }

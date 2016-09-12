@@ -112,7 +112,7 @@ export function submitCart(cart, activityCart, next) {
       const now = Date.now() + fbTime.val();
 
       ref.child(`activities/${dayMonth}/${now}`)
-        .set({ changedCartTime: 0, cart })
+        .set({ changedCartTime: 0, refundedCartTime: 0, cart })
         .then(() => next(null, 'Item/s purchase'))
         .catch(next);
 

@@ -28,10 +28,10 @@ export default function reducer(state = init, action) {
 export function verifyCreds(email, password) {
   return (dispatch, _, { auth }) => {
     auth().signInWithEmailAndPassword(email, password)
-    .then(authData => {
-      hashHistory.push('/dashboard');
-      dispatch({ type: LOGIN_SUCCESS, authData });
-    })
-    .catch(err => dispatch({ type: LOGIN_ERROR, err }));
+      .then(authData => {
+        hashHistory.push('/Dashboard');
+        dispatch({ type: LOGIN_SUCCESS, authData });
+      })
+      .catch(err => dispatch({ type: LOGIN_ERROR, err }));
   };
 }

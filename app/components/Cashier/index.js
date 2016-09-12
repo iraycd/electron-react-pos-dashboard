@@ -48,12 +48,8 @@ export default class Cashier extends Component {
   }
 
   componentWillMount() {
-    const {
-      params,
-      activities,
-      actions,
-      items,
-    } = this.props;
+    const { params, activities, actions, items, } = this.props;
+
 
     if (params.timestamp) {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
@@ -69,6 +65,7 @@ export default class Cashier extends Component {
           stock: items[rItemIndex].stock
         };
       });
+
 
       actions.clearCart();
       actions.addCart(activityCart);
@@ -94,51 +91,37 @@ export default class Cashier extends Component {
   }
 
   _handleQuantity = (e = { target: { value: 1 } }) => {
-    const {
-      props: {
-        activities,
-        cart,
-        params,
-      },
-      state
-    } = this;
+    const { props: { activities, cart, params, }, state } = this;
     const value = +e.target.value;
-    // let getCartTotal = 0;
-    // let getActivitiesTotal = 0;
-    //
-    // if (params.timestamp) {
-    //   const date = new Date(params.timestamp.slice(0, -3) * 1000)
-    //     .toLocaleDateString()
-    //     .replace(/\//g, '-');
-    //   const selectedItemCartQuantity = cart.length && cart.map((item) => item.id).indexOf(state.selectedItem.id) > -1 ? cart.filter((item) => item.id === state.selectedItem.id)[0].quantity : 0;
-    //
-    //   getCartTotal = cart.length ? cart.map((item) => item.sellingPrice * item.quantity)
-    //     .reduce((p, c) => p + c) + (state.selectedItem.sellingPrice * (value - selectedItemCartQuantity)) : 0;
-    //   getActivitiesTotal = activities[date][params.timestamp].cart
-    //     .map((item) => item.sellingPrice * item.quantity)
-    //     .reduce((p, c) => p + c);
-    // }
-
-    // if (params.timestamp && getCartTotal > getActivitiesTotal) {
-    //   this.setState({
-    //     quantity: value,
-    //     quantityError: `${getCartTotal} > ${getActivitiesTotal}`,
-    //   });
-    // }
+    const stock = Math.floor(state.selectedItem.stock);
 
     if (value.toString().indexOf('.') === -1) {
       if (value > state.selectedItem.stock) {
         if (!state.quantityError) {
-          this.setState({
-            quantity: value,
-            quantityError: `The maximum value is ${Math.floor(state.selectedItem.stock)}`,
-          });
+          if (stock === 0) {
+            this.setState({
+              quantity: value,
+              quantityError: `${state.selectedItem.name} is currently out of stock`,
+            });
+          } else {
+            this.setState({
+              quantity: value,
+              quantityError: `The maximum value is ${stock}`,
+            });
+          }
         }
       } else if (value === 0) {
-        this.setState({
-          quantity: value,
-          quantityError: 'The minimum value is 1',
-        });
+        if (stock === 0) {
+          this.setState({
+            quantity: value,
+            quantityError: `${state.selectedItem.name} is currently out of stock`,
+          });
+        } else {
+          this.setState({
+            quantity: value,
+            quantityError: 'The minimum value is 1',
+          });
+        }
       } else {
         this.setState({
           quantity: value,
@@ -374,16 +357,17 @@ export default class Cashier extends Component {
                     <Paper
                       zDepth={2}
                       style={
-                        isCartItem(tile.id) ?
-                          styles.hide : styles.gridTilePaper
+                        isCartItem(tile.id)
+                        ? styles.hide
+                        : styles.gridTilePaper
                       }
                     >
                       <GridTile
                         key={i}
                         title={
-                          tile.name ?
-                            <span style={{ fontSize: '2.5rem', }}>{tile.name}</span>
-                            : <span style={{ fontSize: '2.5rem', }}>{tile}</span>
+                          tile.name
+                          ? <span style={{ fontSize: '2.5rem', }}>{tile.name}</span>
+                          : <span style={{ fontSize: '2.5rem', }}>{tile}</span>
                         }
                         titlePosition={tile.name ? 'bottom' : 'top'}
                         onTouchTap={tile.name ? () => tile.stock && this._toggleQuantifying(tile) : () => actions.selectGroup(tile)}

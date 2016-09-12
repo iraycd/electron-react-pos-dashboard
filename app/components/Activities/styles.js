@@ -18,5 +18,12 @@ export default {
     width: '100%',
     height: '90vh',
     overflowY: 'auto',
+  },
+  activityNow: {
+    height: 180,
+    width: '100%',
+    listStyleType: 'none',
+    padding: 5,
+    marginBottom: 20,
   }
 };

@@ -35,12 +35,14 @@ const rootReducer = combineReducers({
       cost: val => Number(val),
       sellingPrice: val => Number(val),
       stock: val => Number(val),
+      feet: val => Number(val),
     },
     update_inventory_item: {
       id: val => Number(val),
       cost: val => Number(val),
       sellingPrice: val => Number(val),
       stock: val => Number(val),
+      feet: val => Number(val),
     },
   }),
 });

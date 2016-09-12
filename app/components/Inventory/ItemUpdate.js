@@ -43,12 +43,7 @@ class ItemUpdate extends Component {
 
   _updateItem = () => {
     const changedFields = {};
-    const {
-      item,
-      values,
-      editRowItem,
-      updateItem,
-    } = this.props;
+    const { item, values, editRowItem, updateItem, } = this.props;
 
     Object.keys(item).forEach((key) => {
       if (values.hasOwnProperty(key) && values[key] !== item[key]) {
@@ -61,29 +56,114 @@ class ItemUpdate extends Component {
   }
 
   render() {
-    const {
-      fields,
-      item: { id },
-      selected,
-      editRowItem,
-      itemsName,
-    } = this.props;
+    const { fields, item, selected, editRowItem, itemsName, isItemDrawerEdit, cancelEditing } = this.props;
+
+    if (isItemDrawerEdit) {
+      return (
+        <div>
+          <TextField // FIXME: number fields accepts 0 value
+            {...fields.id}
+            floatingLabelText="ID"
+            type="number"
+            min={1}
+            step={1}
+            onFocus={this._onFocus}
+            autoFocus
+          />
+          <br />
+          <AutoComplete
+            {...fields.name}
+            floatingLabelText="Item Name"
+            searchText={fields.name.value}
+            dataSource={itemsName}
+            filter={AutoComplete.fuzzyFilter}
+            openOnFocus
+          />
+          <br />
+          <TextField
+            {...fields.cost}
+            type="number"
+            floatingLabelText="Product Cost"
+            min={1}
+            step="any"
+          />
+          <br />
+          <TextField
+            {...fields.sellingPrice}
+            floatingLabelText="Selling Price"
+            type="number"
+            min={1}
+            step="any"
+          />
+          <br />
+          <TextField
+            {...fields.stock}
+            type="number"
+            step="any"
+            floatingLabelText="Stock"
+          />
+          <br />
+          <TextField
+            {...fields.category}
+            floatingLabelText="Category"
+          />
+          <br />
+          <TextField
+            {...fields.brand}
+            floatingLabelText="Brand"
+          />
+          <br />
+          <TextField
+            {...fields.supplier}
+            floatingLabelText="Supplier"
+          />
+          <br />
+          <TextField
+            {...fields.description}
+            floatingLabelText="Description"
+          />
+          <br />
+          <TextField
+            {...fields.image}
+            type="file"
+            floatingLabelText="image"
+            floatingLabelText="Image"
+            value={null}
+            fullWidth
+          />
+          <img src={item && item.image || './static/placeholder.jpg'} alt={item && item.name} width="250" height="200" />
+          <br />
+          <IconButton onTouchTap={cancelEditing} touch>
+            <Cancel />
+          </IconButton>
+          <IconButton
+            onTouchTap={() => {
+              this._updateItem();
+              cancelEditing();
+            }}
+            touch
+          >
+            <Done />
+          </IconButton>
+        </div>
+      );
+    }
 
     return (
-      <TableRow key={id} selected={selected}>
+      <TableRow key={item.id} selected={selected}>
         <TableRowColumn>
           <TextField // FIXME: number fields accepts 0 value
             {...fields.id}
+            floatingLabelText="ID"
             type="number"
             min={1}
-            onFocus={this._onFocus}
             step={1}
-            autoFocus
           />
         </TableRowColumn>
         <TableRowColumn>
           <AutoComplete
             {...fields.name}
+            floatingLabelText="Item Name"
             searchText={fields.name.value}
             dataSource={itemsName}
             filter={AutoComplete.fuzzyFilter}
@@ -93,6 +173,7 @@ class ItemUpdate extends Component {
         <TableRowColumn>
           <TextField
             {...fields.cost}
+            floatingLabelText="Product Cost"
             type="number"
             min={1}
             step="any"
@@ -101,6 +182,7 @@ class ItemUpdate extends Component {
         <TableRowColumn>
           <TextField
             {...fields.sellingPrice}
+            floatingLabelText="Selling Price"
             type="number"
             min={1}
             step="any"
@@ -110,30 +192,12 @@ class ItemUpdate extends Component {
           <TextField
             type="number"
             step="any"
+            floatingLabelText="Stock"
             {...fields.stock}
+            onFocus={this._onFocus}
+            autoFocus
           />
         </TableRowColumn>
-        {/* <TableRowColumn>
-          <TextField {...fields.category} />
-        </TableRowColumn>
-        <TableRowColumn>
-          <TextField {...fields.brand} />
-        </TableRowColumn>
-        <TableRowColumn>
-          <TextField {...fields.supplier} />
-        </TableRowColumn>
-        <TableRowColumn>
-          <TextField {...fields.description} />
-        </TableRowColumn>
-        <TableRowColumn>
-          <TextField
-            {...fields.image}
-            type="file"
-            value={null}
-            floatingLabelText="image"
-            fullWidth
-          />
-        </TableRowColumn>*/}
         <TableRowColumn />
         <TableRowColumn style={{ textAlign: 'right' }}>
           <IconButton onTouchTap={() => editRowItem(-1)} touch>

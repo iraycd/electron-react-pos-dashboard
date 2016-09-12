@@ -36,14 +36,19 @@ export default function reducer(state = {}, action) {
   }
 }
 
-export function toggleActivity(activityTimestamp) {
+export function toggleActivity(activityTimestamp, refund) {
   return (dispatch, _, { ref, timestamp }) => {
     const tsDate = new Date(activityTimestamp.slice(0, -3) * 1000)
       .toLocaleDateString()
       .replace(/\//g, '-');
 
-    ref.child(`activities/${tsDate}/${activityTimestamp}/changedCartTime`)
-      .transaction((current) => (current ? 0 : timestamp));
+    if (refund) {
+      ref.child(`activities/${tsDate}/${activityTimestamp}/refundedCartTime`)
+        .transaction((current) => (current ? 0 : timestamp));
+    } else {
+      ref.child(`activities/${tsDate}/${activityTimestamp}/changedCartTime`)
+        .transaction((current) => (current ? 0 : timestamp));
+    }
   };
 }
 

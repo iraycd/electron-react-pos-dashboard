@@ -11,7 +11,9 @@ import {
   TableRowColumn
 } from 'material-ui/Table';
 import ItemUpdate from './ItemUpdate';
+import ItemDrawer from './ItemDrawer';
 import ItemSetupContainer from '././../../containers/ItemSetupContainer';
+
 import Paper from 'material-ui/Paper';
 import IconButton from 'material-ui/IconButton';
 import IconMenu from 'material-ui/IconMenu';
@@ -27,7 +29,6 @@ import ArrowDropRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right'
 import More from 'material-ui/svg-icons/navigation/more-horiz';
 import Divider from 'material-ui/Divider';
 import TextField from 'material-ui/TextField';
-import Dialog from 'material-ui/Dialog';
 import styles from './styles';
 
 @Radium
@@ -42,22 +43,24 @@ export default class Inventory extends Component {
     suppliers: PropTypes.array.isRequired,
     isDeletionEnabled: PropTypes.bool.isRequired,
     rowItemEdit: PropTypes.number.isRequired,
-    more: React.PropTypes.oneOfType([
-      React.PropTypes.string,
-      React.PropTypes.object]).isRequired,
   }
 
   constructor() {
     super();
 
-    this.state = { selectedRows: [] };
+    this.state = {
+      selectedRows: [],
+      isDrawerOpen: false,
+      selectedItem: -1,
+      selectedItemTemp: -1,
+    };
   }
 
   componentWillMount() {
     this.props.actions.fetchInventoryItems();
   }
 
-  _selectRows = rowIndex => {
+  selectRows = (rowIndex) => {
     const { actions } = this.props;
 
     this.setState({ selectedRows: rowIndex });
@@ -67,26 +70,23 @@ export default class Inventory extends Component {
     else actions.selectItems(rowIndex);
   }
 
-  _removeSelectedItems = (e) => {
+  removeSelectedItems = (e) => {
     const { actions, selectedItems } = this.props;
 
     e.preventDefault();
     actions.removeItems(selectedItems);
   }
 
+  handleItemDrawer = (id) => {
+    if (this.state.selectedItemTemp === id) {
+      this.setState({ isDrawerOpen: !this.state.isDrawerOpen });
+    } else {
+      this.setState({ isDrawerOpen: true, selectedItemTemp: id });
+    }
+  };
+
   render() {
-    const {
-      actions,
-      categories,
-      items,
-      selectedItems,
-      isDeletionEnabled,
-      rowItemEdit,
-      brands,
-      suppliers,
-      initialValues,
-      more,
-    } = this.props;
+    const { actions, categories, items, selectedItems, isDeletionEnabled, rowItemEdit, brands, suppliers, initialValues, } = this.props;
 
     const ItemSelectedLength = () => (
       <div style={styles.selectedLength}>
@@ -104,22 +104,32 @@ export default class Inventory extends Component {
     return (
       <div style={styles.container}>
         <Paper zDepth={1} className="col-xs-11" style={{ padding: 0 }}>
+          <ItemDrawer
+            open={this.state.isDrawerOpen}
+            item={items[this.state.selectedItem]}
+            closeItemDrawer={() => this.setState({ isDrawerOpen: false })}
+            updateItem={actions.updateItem}
+            itemsName={items.map((item) => item.name)}
+            initialValues={initialValues}
+            loadInitialValues={actions.loadInitialValues}
+          />
           <Table
-            onRowSelection={this._selectRows}
+            height="65vh"
+            onRowSelection={this.selectRows}
             multiSelectable={isDeletionEnabled}
-            height={"65vh"}
+            onCellClick={(rowNumber) => this.setState({ selectedItem: rowNumber })}
             fixedHeader
             fixedFooter
           >
             <TableHeader adjustForCheckbox={isDeletionEnabled} displaySelectAll={isDeletionEnabled}>
-              <TableRow
-                onTouchTap={(e) => e.preventDefault()}
-              >
+              <TableRow onTouchTap={(e) => e.preventDefault()} >
                 <TableHeaderColumn colSpan="7">
                   <div style={styles.superheader}>
-                    {isDeletionEnabled ?
-                      <ItemSelectedLength />
-                        : <div style={{ display: 'inline-flex' }}>
+                    {
+                      isDeletionEnabled
+                      ? <ItemSelectedLength />
+                      : (
+                        <div style={{ display: 'inline-flex' }}>
                           <ItemSetupContainer disabled={rowItemEdit !== -1} />
                           <FlatButton
                             label="Remove"
@@ -127,7 +137,9 @@ export default class Inventory extends Component {
                             disabled={rowItemEdit !== -1}
                             primary
                           />
-                        </div>}
+                        </div>
+                      )
+                    }
                     <div>
                       <div style={{ display: 'inline-flex' }}>
                         <TextField
@@ -136,10 +148,10 @@ export default class Inventory extends Component {
                           fullWidth
                         />
                       </div>
-                      <IconButton onTouchTap={isDeletionEnabled ? this._removeSelectedItems : null}>
-                        {isDeletionEnabled ?
-                          <Delete onTouchTap={this._removeSelectedItems} />
-                            : <Search disabled={rowItemEdit !== -1} />}
+                      <IconButton onTouchTap={isDeletionEnabled ? this.removeSelectedItems : null}>
+                        {isDeletionEnabled
+                          ? <Delete onTouchTap={this.removeSelectedItems} />
+                          : <Search disabled={rowItemEdit !== -1} />}
                       </IconButton>
                       <IconMenu iconButtonElement={<IconButton><FilterList /></IconButton>}>
                         <MenuItem
@@ -191,7 +203,7 @@ export default class Inventory extends Component {
               </TableRow>
               <TableRow>
                 <TableHeaderColumn>ID</TableHeaderColumn>
-                <TableHeaderColumn>Item</TableHeaderColumn>
+                <TableHeaderColumn>Item Name</TableHeaderColumn>
                 <TableHeaderColumn>Product Cost</TableHeaderColumn>
                 <TableHeaderColumn>Selling Price</TableHeaderColumn>
                 <TableHeaderColumn>Stock</TableHeaderColumn>
@@ -201,7 +213,7 @@ export default class Inventory extends Component {
             </TableHeader>
             <TableBody displayRowCheckbox={isDeletionEnabled} stripedRows>
               {items.map((item, i) => {
-                if (rowItemEdit === i) {
+                if (rowItemEdit === i && !this.state.isDrawerOpen) {
                   return (
                     <ItemUpdate
                       key={item.id}
@@ -218,41 +230,25 @@ export default class Inventory extends Component {
 
                 return ( // TODO: select all checkboxes is throws an error map undefined
                   <TableRow key={item.id} selected={this.state.selectedRows.indexOf(i) !== -1}>
-                    <Dialog
-                      title="More Data"
-                      open={more && true}
-                      onRequestClose={actions.hideMore}
-                      autoScrollBodyContent
-                    >
-                      <img
-                        src={item.image || './static/placeholder.jpg'}
-                        alt={item.name}
-                        width="250"
-                        height="250"
-                      />
-                      <br />
-                      Category: {item.category}
-                      <br />
-                      Brand: {item.brand}
-                      <br />
-                      Supplier: {item.supplier}
-                      <br />
-                      Description: {item.description}
-                    </Dialog>
                     <TableRowColumn>{item.id}</TableRowColumn>
                     <TableRowColumn>{item.name}</TableRowColumn>
                     <TableRowColumn>{item.cost}</TableRowColumn>
                     <TableRowColumn>{item.sellingPrice}</TableRowColumn>
                     <TableRowColumn>{item.stock} / {item.initialStock}</TableRowColumn>
                     <TableRowColumn>
-                      <IconButton onTouchTap={() => actions.showMore(item)} touch>
+                      <IconButton onTouchTap={() => this.handleItemDrawer(item.id)} touch>
                         <More />
                       </IconButton>
                     </TableRowColumn>
                     <TableRowColumn>
-                      <IconButton onTouchTap={() => actions.editRowItem(i)} touch>
-                        <ModeEdit />
-                      </IconButton>
+                      {this.state.isDrawerOpen
+                        ? null
+                        : (
+                        <IconButton onTouchTap={() => actions.editRowItem(i)} touch>
+                          <ModeEdit />
+                        </IconButton>
+                        )
+                      }
                     </TableRowColumn>
                     <Table />
                   </TableRow>

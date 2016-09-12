@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { Link } from 'react-router';
 import Radium from 'radium';
 
+
 import { Toolbar, ToolbarGroup, ToolbarTitle } from 'material-ui/Toolbar';
 import { List, ListItem } from 'material-ui/List';
 import Paper from 'material-ui/Paper';
@@ -14,6 +15,9 @@ import ModeEdit from 'material-ui/svg-icons/editor/mode-edit';
 import Cancel from 'material-ui/svg-icons/content/clear';
 import Return from 'material-ui/svg-icons/content/undo';
 import DatePicker from 'material-ui/DatePicker';
+
+import PastActivities from './PastActivities';
+import ActivityTile from './ActivityTile';
 import styles from './styles';
 
 @Radium
@@ -40,13 +44,9 @@ export default class Activities extends Component {
   }
 
   render() {
-    const { activities, activity, actions, } = this.props;
+    const { activities, actions, } = this.props;
+    const now = new Date().toLocaleDateString().replace(/\//g, '-');
 
-    if (!activities || !activity) {
-      return (
-        <h1>loading...</h1>
-      );
-    }
     // FIXME: no data on activity will cause an error
     return (
       <div className="col-md-12">
@@ -55,52 +55,35 @@ export default class Activities extends Component {
             <Subheader>
               Latest Activity
               <span style={{ fontWeight: 'bold', fontSize: 25, float: 'right', marginRight: 25 }}>
-                ₱{activity && [].concat(...Object.keys(activity)
-                                  .filter((timestamp) => !activity[timestamp].changedCartTime)
-                                  .map((timestamp) => activity[timestamp].cart))
+                ₱{activities[now] && [].concat(...Object.keys(activities[now])
+                                  .filter((timestamp) => !activities[now][timestamp].changedCartTime)
+                                  .map((timestamp) => activities[now][timestamp].cart))
                                 .map((item) => item.quantity * item.sellingPrice)
-                                .reduce((p, c) => p + c, 0)}
+                                .reduce((p, c) => p + c, 0)
+                                .toLocaleString()}
               </span>
             </Subheader>
             <div style={{ padding: 10 }}>
-            {activity && Object.keys(activity).map((timestamp) => (
-              <Paper zDepth={2} style={{ padding: 5, marginBottom: 5 }}>
-                <div>
-                  <Link to={`/cashier/${timestamp}`}>
-                    <IconButton className={activity[timestamp].changedCartTime ? 'hide' : ''} touch>
-                      <ModeEdit />
-                    </IconButton>
-                  </Link>
-                  <IconButton
-                    onTouchTap={() => actions.toggleActivity(timestamp)}
-                    touch
-                  >
-                    <Return />
-                  </IconButton>
-                  &nbsp;
-                  <span
-                    className="pull-right"
-                    style={{ textDecoration: activity[timestamp].changedCartTime ? 'line-through' : 'none' }}
-                  >
-                    {new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()}
-                  </span>
-                </div>
-                {activity[timestamp].cart.map((item, i) => (
-                  <li
-                    key={i}
-                    style={{ textDecoration: activity[timestamp].changedCartTime ? 'line-through' : 'none' }}
-                  >
-                    {item.name} x {item.quantity} = ₱{item.sellingPrice * item.quantity}
-                  </li>
-                ))}
-                <Divider />
-                <span style={{ textDecoration: activity[timestamp].changedCartTime ? 'line-through' : 'none' }}>
-                  Cart Total: ₱{activity[timestamp].cart
-                                  .map((item) => item.quantity * item.sellingPrice)
-                                  .reduce((p, c) => p + c)}
-                </span>
-              </Paper>
-            ))}
+            {activities[now] && Object.keys(activities[now]).map((timestamp) => {
+              const activityNow = activities[now][timestamp];
+              const activityTileProps = {
+                isActivityNowChanged: activityNow.changedCartTime || activityNow.refundedCartTime,
+                transactionTime: new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString(),
+                cartTotal() {
+                  return activityNow.cart
+                    .map((item) => item.quantity * item.sellingPrice)
+                    .reduce((p, c) => p + c);
+                }
+              };
+
+              return (
+                <ActivityTile
+                  {...activityTileProps}
+                  activityNow={activityNow}
+                  toggleActivity={actions.toggleActivity}
+                />
+              );
+            })}
             </div>
           </Paper>
         </div>
@@ -146,53 +129,57 @@ export default class Activities extends Component {
                                                     .reduce((p, c) => p + c, 0)}
                   </Subheader>
                   <Divider />
-                {activities && Object.keys(activities[dayMonth]).map((timestamp) => (
-                  <ListItem
-                    nestedItems={
-                      activities[dayMonth][timestamp].cart.map((item) => (
-                        <ListItem
-                          nestedItems={[
-                            <ListItem>
-                              Price: {`₱${item.sellingPrice}`}
-                            </ListItem>,
-                            <ListItem>
-                              Subtotal: {`₱${item.quantity * item.sellingPrice}`}
-                            </ListItem>,
-                            <ListItem>
-                              Remaining Stock/s: {item.stock}
-                            </ListItem>
-                          ]}
-                          primaryTogglesNestedList
+                {activities && Object.keys(activities[dayMonth]).map((timestamp) => {
+                  const activity = activities[dayMonth][timestamp];
+
+                  return (
+                    <ListItem
+                      nestedItems={
+                        activity.cart.map((item) => (
+                          <ListItem
+                            nestedItems={[
+                              <ListItem>
+                                Price: {`₱${item.sellingPrice}`}
+                              </ListItem>,
+                              <ListItem>
+                                Subtotal: {`₱${item.quantity * item.sellingPrice}`}
+                              </ListItem>,
+                              <ListItem>
+                                Remaining Stock/s: {item.stock}
+                              </ListItem>
+                            ]}
+                            primaryTogglesNestedList
+                          >
+                            {item.name} x{item.quantity}
+                          </ListItem>
+                        ))
+                      }
+                      primaryTogglesNestedList
+                    >
+                      <Link to={`/cashier/${timestamp}`}>
+                        <IconButton
+                          className={activity.changedCartTime ? 'hide' : ''}
+                          touch
                         >
-                          {item.name} x{item.quantity}
-                        </ListItem>
-                      ))
-                    }
-                    primaryTogglesNestedList
-                  >
-                    <Link to={`/cashier/${timestamp}`}>
+                          <ModeEdit />
+                        </IconButton>
+                      </Link>
                       <IconButton
-                        className={activities[dayMonth][timestamp].changedCartTime ? 'hide' : ''}
+                        onTouchTap={() => actions.toggleActivity(timestamp, 'refund')}
+                        className={activity.changedCartTime ? 'hide' : ''}
                         touch
                       >
-                        <ModeEdit />
+                        <Return />
                       </IconButton>
-                    </Link>
-                    <IconButton
-                      onTouchTap={() => actions.removeActivity(timestamp)}
-                      className={[timestamp].changedCartTime ? 'hide' : ''}
-                      touch
-                    >
-                      <Return />
-                    </IconButton>
-                    <span style={{ textDecoration: activities[dayMonth][timestamp].changedCartTime ? 'line-through' : 'none' }}>
-                      ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
-                      Cart Total: ₱ {activities[dayMonth][timestamp].cart
-                                      .map((item) => item.quantity * item.sellingPrice)
-                                      .reduce((p, c) => p + c)}
-                    </span>
-                  </ListItem>
-                ))}
+                      <span style={{ textDecoration: activity.changedCartTime ? 'line-through' : 'none' }}>
+                        ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
+                        Cart Total: ₱ {activity.cart
+                                        .map((item) => item.quantity * item.sellingPrice)
+                                        .reduce((p, c) => p + c)}
+                      </span>
+                    </ListItem>
+                  );
+                })}
                 </List>
               </Paper>
           ))}

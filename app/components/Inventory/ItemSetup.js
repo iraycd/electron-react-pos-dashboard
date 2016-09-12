@@ -26,11 +26,15 @@ import styles from './styles';
 (state) => ({
   initialValues: {
     id: Math.max(
-      ...state.inventory.items.map(item => item.id)
+      ...state.inventory.items.map((item) => item.id)
     ) + 1,
     cost: 1,
     sellingPrice: 1,
     stock: 1,
+    category: '',
+    brand: '',
+    supplier: '',
+    feet: 0,
     image: '',
     description: '',
   }
@@ -45,7 +49,6 @@ export default class ItemSetup extends Component {
     suppliers: PropTypes.array.isRequired,
     disabled: PropTypes.bool.isRequired,
     addNewItem: PropTypes.func,
-    fieldError: PropTypes.string,
   }
 
   constructor() {
@@ -62,14 +65,14 @@ export default class ItemSetup extends Component {
   }
 
   _addNewItem = (e) => {
-    const {
-      values,
-      actions,
-    } = this.props;
-
     e.preventDefault();
+    const { values, actions, } = this.props;
+
     actions.addNewItem(values);
-    actions.reset('new_inventory_item');
+    this.refs.productName.focus();
+    this.refs.categoryField.state.searchText = '';
+    this.refs.brandField.state.searchText = '';
+    this.refs.supplierField.state.searchText = '';
   }
 
   _handleCategoriesDialog = (e) => {
@@ -83,16 +86,7 @@ export default class ItemSetup extends Component {
   }
 
   render() {
-    const {
-      fields,
-      categories,
-      brands,
-      suppliers,
-      disabled,
-      fieldError,
-      actions,
-    } = this.props;
-
+    const { fields, categories, brands, suppliers, disabled, actions, } = this.props;
     const actionButtons = [
       <FlatButton
         label="Cancel"
@@ -132,31 +126,25 @@ export default class ItemSetup extends Component {
               type="number"
               min={1}
               step="any"
-              name="id"
               floatingLabelText="ID"
-              errorText={fieldError}
               onBlur={this._onBlurValidate}
               fullWidth
               autoFocus
+              required
             />
             <br />
             <TextField
               {...fields.name}
+              ref="productName"
               floatingLabelText="Item Name"
               fullWidth
-            />
-            <br />
-            <TextField
-              {...fields.image}
-              type="file"
-              value={null}
-              floatingLabelText="image"
-              fullWidth
+              required
             />
             <br />
             <AutoComplete
               {...fields.category}
               floatingLabelText="Category"
+              ref="categoryField"
               filter={AutoComplete.fuzzyFilter}
               dataSource={categories}
               onUpdateInput={(val) => fields.category.onChange(val)}
@@ -164,8 +152,13 @@ export default class ItemSetup extends Component {
                 setTimeout(() => this.refs.brandField.focus(), 500);
                 fields.category.onChange(val);
               }}
+              onFocus={(e) => {
+                e.target.select();
+                fields.category.onFocus();
+              }}
               fullWidth
               openOnFocus
+              required
             />
             <br />
             <AutoComplete
@@ -174,10 +167,14 @@ export default class ItemSetup extends Component {
               ref="brandField"
               filter={AutoComplete.fuzzyFilter}
               dataSource={brands}
-              onUpdateInput={val => fields.brand.onChange(val)}
-              onNewRequest={val => {
+              onUpdateInput={(val) => fields.brand.onChange(val)}
+              onNewRequest={(val) => {
                 setTimeout(() => this.refs.supplierField.focus(), 500);
                 fields.brand.onChange(val);
+              }}
+              onFocus={(e) => {
+                e.target.select();
+                fields.brand.onFocus();
               }}
               fullWidth
               openOnFocus
@@ -194,6 +191,10 @@ export default class ItemSetup extends Component {
                 setTimeout(() => this.refs.costField.focus(), 500);
                 fields.supplier.onChange(val);
               }}
+              onFocus={(e) => {
+                e.target.select();
+                fields.supplier.onFocus();
+              }}
               fullWidth
               openOnFocus
             />
@@ -206,6 +207,7 @@ export default class ItemSetup extends Component {
               ref="costField"
               floatingLabelText="Product Cost"
               fullWidth
+              required
             />
             <br />
             <TextField
@@ -215,6 +217,7 @@ export default class ItemSetup extends Component {
               step="any"
               floatingLabelText="Selling Price"
               fullWidth
+              required
             />
             <br />
             <TextField
@@ -224,12 +227,13 @@ export default class ItemSetup extends Component {
               step="any"
               floatingLabelText="Stock"
               fullWidth
+              required
             />
             <br />
             <TextField
               {...fields.feet}
               type="number"
-              floatingLabelText="Feet(optional)"
+              floatingLabelText="Feet(for steels etc.)"
               fullWidth
             />
             <br />
@@ -239,6 +243,14 @@ export default class ItemSetup extends Component {
               floatingLabelText="Description(optional)"
               fullWidth
             />
+            <TextField
+              {...fields.image}
+              type="file"
+              value={null}
+              floatingLabelText="Image(optional)"
+              fullWidth
+            />
+            <br />
             <input className="hidden" type="submit" />
           </form>
         </Dialog>

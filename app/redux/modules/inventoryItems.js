@@ -21,7 +21,7 @@ export default function reducer(state = [], action) {
       ];
     case UPDATE_ITEM:
       return state.map((item) => (item.id === action.itemId ?
-        { ...item, ...action.itemProps } : item));
+        { ...item, ...action.itemProps, initialStock: action.itemProps.stock ? action.itemProps.stock : item.stock } : item));
     case REMOVE_ITEMS:
       return state.filter((item) => action.items.indexOf(item) === -1);
     case ITEM_STOCK_UPDATED:
@@ -35,8 +35,8 @@ export function addNewItem(item) {
   return (dispatch, _, { ref, storage, timestamp }) => {
     function addInvItem(props) {
       ref.child(`inventory/${props.id}`)
-      .set({ ...props, initialStock: props.stock, timestamp })
-      .then(() => dispatch({ type: NEW_ITEM_SYNCED }));
+        .set({ ...props, initialStock: props.stock, timestamp })
+        .then(() => dispatch({ type: NEW_ITEM_SYNCED }));
     }
 
     if (item.image && item.image[0]) {
@@ -79,12 +79,12 @@ export function updateItem(itemId, itemProps) {
     function updateInvItem(props) {
       if (props.stock) {
         ref.child(`inventory/${itemId}`)
-        .update({ ...props, initialStock: props.stock })
-        .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps }));
+          .update({ ...props, initialStock: props.stock })
+          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps }));
       } else {
         ref.child(`inventory/${itemId}`)
-        .update(props)
-        .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps }));
+          .update(props)
+          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps }));
       }
     }
 
@@ -127,7 +127,7 @@ export function updateItem(itemId, itemProps) {
 
         ref.child(`inventory/${itemProps.id}`).set(newChildVal);
         oldChild.remove()
-        .then(() => dispatch({ type: UPDATE_ITEM_SYNCED }));
+          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED }));
       });
     }
 
@@ -154,9 +154,12 @@ export function updateItem(itemId, itemProps) {
 
 export function removeItems(items) {
   return (dispatch, _, { ref, storage }) => {
+    if (!items.length) return;
+
     const itemsToDel = {};
 
     dispatch({ type: REMOVE_ITEMS, items });
+
     items.forEach((item) => {
       storage.child(`itemImages/${item.id}.jpg`).delete()
         .then(() => console.log(`${item} image deleted`));
@@ -182,17 +185,16 @@ export function fetchInventoryItems() {
 
         dispatch({ type: ALL_ITEMS_FETCHED, items });
         localStorage.setObj('inventoryItems', items);
-      })
-      .then(() => {
-        ref.child('inventory').on('child_changed', (snap) => {
-          const item = snap.val();
-          const origItem = getState().inventory.items
-            .reduce((prev, curr) => (prev.id === item.id ? prev : curr));
-
-          if (origItem.stock !== item.stock) {
-            dispatch({ type: ITEM_STOCK_UPDATED, item });
-          }
-        });
       });
+
+    ref.child('inventory').on('child_changed', (snap) => {
+      const item = snap.val();
+      const origItem = getState().inventory.items
+        .reduce((prev, curr) => (prev.id === item.id ? prev : curr));
+
+      if (origItem.stock !== item.stock) {
+        dispatch({ type: ITEM_STOCK_UPDATED, item });
+      }
+    });
   };
 }

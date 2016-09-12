@@ -7,8 +7,6 @@ const SELECT_ALL_ITEMS = 'SELECT_ALL_ITEMS';
 const UNSELECT_ALL_ITEMS = 'UNSELECT_ALL_ITEMS';
 const SEARCH_ITEM = 'SEARCH_ITEM';
 const VALIDATE_FIELD = 'VALIDATE_FIELD';
-const SHOW_MORE = 'SHOW_MORE';
-const HIDE_MORE = 'HIDE_MORE';
 
 const init = {
   selectedIndexes: [],
@@ -77,32 +75,9 @@ export default function reducer(state = init, action) {
           value: action.val
         }
       };
-    case SHOW_MORE:
-      return {
-        ...state,
-        more: action.item
-      };
-    case HIDE_MORE:
-      return {
-        ...state,
-        more: ''
-      };
     default:
       return state;
   }
-}
-
-export function showMore(item) {
-  return {
-    type: SHOW_MORE,
-    item
-  };
-}
-
-export function hideMore() {
-  return {
-    type: HIDE_MORE
-  };
 }
 
 export function validateField(name, val) {

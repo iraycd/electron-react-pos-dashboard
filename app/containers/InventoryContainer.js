@@ -12,12 +12,10 @@ function mapStateToProps(state) {
             rowItemEdit,
             isDeletionEnabled,
             initFields,
-            more,
           }
         } } = state;
 
   return {
-    more,
     rowItemEdit,
     isDeletionEnabled,
     initialValues: initFields,

@@ -8,10 +8,8 @@ function mapStateToProps(state) {
   const {
     activities,
   } = state;
-  const now = new Date().toLocaleDateString().replace(/\//g, '-');
 
   return {
-    activity: activities[now],
     activities,
   };
 }
