@@ -30,20 +30,20 @@ class ItemUpdate extends Component {
     item: PropTypes.object.isRequired,
     values: PropTypes.object.isRequired,
     selected: PropTypes.bool.isRequired,
-    editRowItem: PropTypes.func.isRequired,
+    actions: PropTypes.object.isRequired,
     updateItem: PropTypes.func.isRequired,
     loadInitialValues: PropTypes.func.isRequired
   }
 
-  _onFocus = () => {
+  onFocus = () => {
     const { item, loadInitialValues } = this.props;
 
     loadInitialValues(item);
   }
 
-  _updateItem = () => {
+  updateItem = () => {
     const changedFields = {};
-    const { item, values, editRowItem, updateItem, } = this.props;
+    const { item, values, actions, updateItem, } = this.props;
 
     Object.keys(item).forEach((key) => {
       if (values.hasOwnProperty(key) && values[key] !== item[key]) {
@@ -51,12 +51,12 @@ class ItemUpdate extends Component {
       }
     });
 
-    if (Object.keys(changedFields).length) updateItem(item.id, changedFields);
-    editRowItem(-1);
+    if (Object.keys(changedFields).length) updateItem(item.id, changedFields, item);
+    actions.editRowItem(-1);
   }
 
   render() {
-    const { fields, item, selected, editRowItem, itemsName, isItemDrawerEdit, cancelEditing } = this.props;
+    const { fields, item, selected, actions, itemsName, isItemDrawerEdit, cancelEditing } = this.props;
 
     if (isItemDrawerEdit) {
       return (
@@ -67,7 +67,7 @@ class ItemUpdate extends Component {
             type="number"
             min={1}
             step={1}
-            onFocus={this._onFocus}
+            onFocus={this.onFocus}
             autoFocus
           />
           <br />
@@ -138,7 +138,7 @@ class ItemUpdate extends Component {
           </IconButton>
           <IconButton
             onTouchTap={() => {
-              this._updateItem();
+              this.updateItem();
               cancelEditing();
             }}
             touch
@@ -194,16 +194,16 @@ class ItemUpdate extends Component {
             step="any"
             floatingLabelText="Stock"
             {...fields.stock}
-            onFocus={this._onFocus}
+            onFocus={this.onFocus}
             autoFocus
           />
         </TableRowColumn>
         <TableRowColumn />
         <TableRowColumn style={{ textAlign: 'right' }}>
-          <IconButton onTouchTap={() => editRowItem(-1)} touch>
+          <IconButton onTouchTap={() => actions.editRowItem(-1)} touch>
             <Cancel />
           </IconButton>
-          <IconButton onTouchTap={this._updateItem} touch>
+          <IconButton onTouchTap={this.updateItem} touch>
             <Done />
           </IconButton>
         </TableRowColumn>

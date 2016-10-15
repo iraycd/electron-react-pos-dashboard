@@ -5,7 +5,7 @@ import { getGridTiles, getItems } from './../selectors/cashierSelectors';
 import Cashier from './../components/Cashier';
 import * as cashierActions from './../redux/modules/cashier';
 import * as cartActions from './../redux/modules/cart';
-import { fetchInventoryItems } from './../redux/modules/inventoryItems';
+import { fetchListenToInventory, removeListenersToInventory } from './../redux/modules/inventoryItems';
 
 
 function mapStateToProps(state) {
@@ -29,7 +29,8 @@ function mapDispatchToProps(dispatch) {
     actions: bindActionCreators({
       ...cashierActions,
       ...cartActions,
-      fetchInventoryItems,
+      fetchListenToInventory,
+      removeListenersToInventory,
     }, dispatch)
   };
 }

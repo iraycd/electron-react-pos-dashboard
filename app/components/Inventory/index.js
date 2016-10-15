@@ -57,7 +57,15 @@ export default class Inventory extends Component {
   }
 
   componentWillMount() {
-    this.props.actions.fetchInventoryItems();
+    const { actions, } = this.props;
+
+    actions.fetchListenToInventory();
+  }
+
+  componentWillUnmount() {
+    const { actions, } = this.props;
+
+    actions.removeListenersToInventory();
   }
 
   selectRows = (rowIndex) => {
@@ -107,6 +115,7 @@ export default class Inventory extends Component {
           <ItemDrawer
             open={this.state.isDrawerOpen}
             item={items[this.state.selectedItem]}
+            actions={actions}
             closeItemDrawer={() => this.setState({ isDrawerOpen: false })}
             updateItem={actions.updateItem}
             itemsName={items.map((item) => item.name)}

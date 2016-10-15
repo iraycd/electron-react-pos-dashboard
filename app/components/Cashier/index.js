@@ -71,7 +71,13 @@ export default class Cashier extends Component {
       actions.addCart(activityCart);
     }
 
-    actions.fetchInventoryItems();
+    actions.fetchListenToInventory();
+  }
+
+  componentWillUnmount() {
+    const { actions, } = this.props;
+
+    actions.removeListenersToInventory();
   }
 
   _toggleQuantifying = (prop = {}, isUpdating = false, next) => {

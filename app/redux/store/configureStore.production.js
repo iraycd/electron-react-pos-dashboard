@@ -17,7 +17,7 @@ firebase.initializeApp({
 const firebaseAPI = {
   ref: firebase.database().ref(),
   storage: firebase.storage().ref(),
-  auth: firebase.auth,
+  auth: firebase.auth(),
   timestamp: firebase.database.ServerValue.TIMESTAMP,
 };
 

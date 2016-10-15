@@ -1,4 +1,9 @@
+import _ from 'lodash';
+
 const FETCH_ALL_ITEMS = 'FETCH_ALL_ITEMS';
+const FETCH_ITEM_HISTORY = 'FETCH_ITEM_HISTORY';
+
+const ITEM_HISTORY_FETCHED = 'ITEM_HISTORY_FETCHED';
 
 const ALL_ITEMS_FETCHED = 'ALL_ITEMS_FETCHED';
 const NEW_ITEM = 'NEW_ITEM';
@@ -20,19 +25,41 @@ export default function reducer(state = [], action) {
         action.newItem
       ];
     case UPDATE_ITEM:
-      return state.map((item) => (item.id === action.itemId ?
-        { ...item, ...action.itemProps, initialStock: action.itemProps.stock ? action.itemProps.stock : item.stock } : item));
+      return state.map((item) => {
+        if (item.id === action.itemId) {
+          return {
+            ...item,
+            ...action.itemProps,
+            initialStock: action.itemProps.stock || item.stock,
+          };
+        }
+
+        return item;
+      });
+      // return state.map((item) => (item.id === action.itemId ?
+      //   { ...item, ...action.itemProps, initialStock: action.itemProps.stock ? action.itemProps.stock : item.stock } : item));
     case REMOVE_ITEMS:
-      return state.filter((item) => action.items.indexOf(item) === -1);
+      return state.filter((item) => !action.itemsToRemove.includes(item));
     case ITEM_STOCK_UPDATED:
-      return state.map((item) => (item.id === action.item.id ? action.item : item));
+      return state.map((item) => (item.id === action.item.id ? action.updatedItem : item));
+    case ITEM_HISTORY_FETCHED:
+      return state.map((item) => {
+        if (item.id === action.itemId) {
+          return {
+            ...item,
+            history: action.itemHistory,
+          };
+        }
+
+        return item;
+      });
     default:
       return state;
   }
 }
 
 export function addNewItem(item) {
-  return (dispatch, _, { ref, storage, timestamp }) => {
+  return (dispatch, getState, { ref, storage, timestamp }) => {
     function addInvItem(props) {
       ref.child(`inventory/${props.id}`)
         .set({ ...props, initialStock: props.stock, timestamp })
@@ -74,8 +101,8 @@ export function addNewItem(item) {
   };
 }
 
-export function updateItem(itemId, itemProps) {
-  return (dispatch, _, { ref, storage }) => {
+export function updateItem(itemId, itemProps, prevItemProps) {
+  return (dispatch, getState, { ref, auth, storage }) => {
     function updateInvItem(props) {
       if (props.stock) {
         ref.child(`inventory/${itemId}`)
@@ -131,6 +158,19 @@ export function updateItem(itemId, itemProps) {
       });
     }
 
+    ref.child('.info/serverTimeOffset').on('value', (fbTime) => {
+      const time = new Date((Date.now() + fbTime.val())).toLocaleString();
+
+      _.forEach(itemProps, (val, key) => {
+        ref.child(`itemHistory/${itemId}/`)
+          .push({
+            details: `${auth.currentUser.displayName} has updated the item ${key} from ${prevItemProps[key]} to ${itemProps[key]}.`,
+            category: key,
+            time,
+          });
+      });
+    });
+
     if (itemProps.id) {
       if (itemProps.image && itemProps.image[0]) {
         readFile();
@@ -152,49 +192,67 @@ export function updateItem(itemId, itemProps) {
   };
 }
 
-export function removeItems(items) {
-  return (dispatch, _, { ref, storage }) => {
-    if (!items.length) return;
+export function removeItems(itemsToRemove) {
+  return (dispatch, getState, { ref, storage }) => {
+    if (!itemsToRemove.length) return;
 
-    const itemsToDel = {};
+    const itemsToRemoveObj = {};
 
-    dispatch({ type: REMOVE_ITEMS, items });
+    dispatch({ type: REMOVE_ITEMS, itemsToRemove });
 
-    items.forEach((item) => {
+    itemsToRemove.forEach((item) => {
       storage.child(`itemImages/${item.id}.jpg`).delete()
         .then(() => console.log(`${item} image deleted`));
 
-      itemsToDel[item.id] = null;
+      itemsToRemoveObj[item.id] = null;
     });
 
     ref.child('inventory')
-      .update(itemsToDel)
+      .update(itemsToRemoveObj)
       .then(() => dispatch({ type: REMOVE_ITEMS_SYNCED }));
   };
 }
 
-export function fetchInventoryItems() {
+export function fetchListenToInventory() {
   return (dispatch, getState, { ref }) => {
     dispatch({ type: FETCH_ALL_ITEMS });
 
     ref.child('inventory').once('value')
       .then((snap) => {
         const rawItems = snap.val();
-        const items = Object.keys(rawItems)
-          .map((key) => rawItems[key]);
+        const items = Object.keys(rawItems).map((key) => rawItems[key]);
 
         dispatch({ type: ALL_ITEMS_FETCHED, items });
-        localStorage.setObj('inventoryItems', items);
+        // localStorage.setObj('inventoryItems', items);
       });
 
     ref.child('inventory').on('child_changed', (snap) => {
-      const item = snap.val();
+      const updatedItem = snap.val();
       const origItem = getState().inventory.items
-        .reduce((prev, curr) => (prev.id === item.id ? prev : curr));
+        .reduce((prev, curr) => (prev.id === updatedItem.id ? prev : curr));
 
-      if (origItem.stock !== item.stock) {
-        dispatch({ type: ITEM_STOCK_UPDATED, item });
+      if (origItem.stock !== updatedItem.stock) {
+        dispatch({ type: ITEM_STOCK_UPDATED, updatedItem });
       }
     });
+  };
+}
+
+export function removeListenersToInventory() {
+  return (dispatch, getState, { ref }) => {
+    ref.child('inventory').off();
+  };
+}
+
+export function fetchItemHistory(itemId) {
+  return (dispatch, getState, { ref }) => {
+    dispatch({ type: FETCH_ITEM_HISTORY });
+
+    ref.child(`itemHistory/${itemId}`).once('value')
+      .then((snap) => {
+        const itemHistory = snap.val() || {};
+
+        dispatch({ type: ITEM_HISTORY_FETCHED, itemId, itemHistory });
+      });
   };
 }

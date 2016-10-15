@@ -4,7 +4,7 @@ const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 const LOGIN_ERROR = 'LOGIN_ERROR';
 
 const init = {
-  email: '',
+  authData: {},
   loginErr: '',
 };
 
@@ -13,7 +13,7 @@ export default function reducer(state = init, action) {
     case LOGIN_SUCCESS:
       return {
         ...state,
-        email: 'email'
+        authData: action.authData,
       };
     case LOGIN_ERROR:
       return {
@@ -27,8 +27,8 @@ export default function reducer(state = init, action) {
 
 export function verifyCreds(email, password) {
   return (dispatch, _, { auth }) => {
-    auth().signInWithEmailAndPassword(email, password)
-      .then(authData => {
+    auth.signInWithEmailAndPassword(email, password)
+      .then((authData) => {
         hashHistory.push('/Dashboard');
         dispatch({ type: LOGIN_SUCCESS, authData });
       })

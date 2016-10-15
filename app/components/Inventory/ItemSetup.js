@@ -22,12 +22,9 @@ import styles from './styles';
     'image',
     'feet'
   ]
-},
-(state) => ({
+}, (state) => ({
   initialValues: {
-    id: Math.max(
-      ...state.inventory.items.map((item) => item.id)
-    ) + 1,
+    id: 0,
     cost: 1,
     sellingPrice: 1,
     stock: 1,
