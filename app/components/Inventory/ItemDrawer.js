@@ -16,7 +16,7 @@ export default class ItemDrawer extends Component {
   }
 
   render() {
-    const { open, item, initialValues, actions, closeItemDrawer } = this.props;
+    const { open, item, initialValues, actions, closeItemDrawer, selectedIndex, } = this.props;
 
     return (
       <Drawer width={350} open={open} openSecondary>
@@ -46,6 +46,7 @@ export default class ItemDrawer extends Component {
             return (
               <ItemHistory
                 item={item}
+                selectedIndex={selectedIndex}
                 actions={actions}
                 closeHistory={() => this.setState({ isHistoryShowed: false })}
               />

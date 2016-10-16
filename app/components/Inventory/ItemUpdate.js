@@ -32,18 +32,17 @@ class ItemUpdate extends Component {
     selected: PropTypes.bool.isRequired,
     actions: PropTypes.object.isRequired,
     updateItem: PropTypes.func.isRequired,
-    loadInitialValues: PropTypes.func.isRequired
   }
 
   onFocus = () => {
-    const { item, loadInitialValues } = this.props;
+    const { item, actions, } = this.props;
 
-    loadInitialValues(item);
+    actions.loadInitialValues(item);
   }
 
   updateItem = () => {
     const changedFields = {};
-    const { item, values, actions, updateItem, } = this.props;
+    const { item, values, actions, itemIndex, } = this.props;
 
     Object.keys(item).forEach((key) => {
       if (values.hasOwnProperty(key) && values[key] !== item[key]) {
@@ -51,7 +50,9 @@ class ItemUpdate extends Component {
       }
     });
 
-    if (Object.keys(changedFields).length) updateItem(item.id, changedFields, item);
+    if (Object.keys(changedFields).length) {
+      actions.updateItem(itemIndex, item.id, changedFields, item);
+    }
     actions.editRowItem(-1);
   }
 

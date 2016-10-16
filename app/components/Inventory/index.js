@@ -94,7 +94,7 @@ export default class Inventory extends Component {
   };
 
   render() {
-    const { actions, categories, items, selectedItems, isDeletionEnabled, rowItemEdit, brands, suppliers, initialValues, } = this.props;
+    const { actions, categories, items, selectedItems, isDeletionEnabled, rowItemEdit, brands, suppliers, initialValues, selectedIndex, } = this.props;
 
     const ItemSelectedLength = () => (
       <div style={styles.selectedLength}>
@@ -121,6 +121,7 @@ export default class Inventory extends Component {
             itemsName={items.map((item) => item.name)}
             initialValues={initialValues}
             loadInitialValues={actions.loadInitialValues}
+            selectedIndex={selectedIndex}
           />
           <Table
             height="65vh"
@@ -220,19 +221,22 @@ export default class Inventory extends Component {
                 <TableHeaderColumn />
               </TableRow>
             </TableHeader>
-            <TableBody displayRowCheckbox={isDeletionEnabled} stripedRows>
+            <TableBody
+              displayRowCheckbox={isDeletionEnabled}
+              deselectOnClickaway={this.state.isDrawerOpen}
+              stripedRows
+            >
               {items.map((item, i) => {
                 if (rowItemEdit === i && !this.state.isDrawerOpen) {
                   return (
                     <ItemUpdate
                       key={item.id}
                       item={item}
-                      editRowItem={actions.editRowItem}
-                      updateItem={actions.updateItem}
+                      actions={actions}
                       initialValues={initialValues}
-                      loadInitialValues={actions.loadInitialValues}
                       selected={this.state.selectedRows.indexOf(i) !== -1}
                       itemsName={items.map((item) => item.name)}
+                      itemIndex={i}
                     />
                   );
                 }

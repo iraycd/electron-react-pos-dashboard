@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import values from 'object.values';
 
 const FETCH_ALL_ITEMS = 'FETCH_ALL_ITEMS';
 const FETCH_ITEM_HISTORY = 'FETCH_ITEM_HISTORY';
@@ -25,33 +25,25 @@ export default function reducer(state = [], action) {
         action.newItem
       ];
     case UPDATE_ITEM:
-      return state.map((item) => {
-        if (item.id === action.itemId) {
-          return {
-            ...item,
-            ...action.itemProps,
-            initialStock: action.itemProps.stock || item.stock,
-          };
+      return values({
+        ...state,
+        [action.itemIndex]: {
+          ...state[action.itemIndex],
+          ...action.itemProps,
+          initialStock: action.itemProps.stock || state[action.itemIndex].item.stock,
         }
-
-        return item;
       });
-      // return state.map((item) => (item.id === action.itemId ?
-      //   { ...item, ...action.itemProps, initialStock: action.itemProps.stock ? action.itemProps.stock : item.stock } : item));
     case REMOVE_ITEMS:
       return state.filter((item) => !action.itemsToRemove.includes(item));
     case ITEM_STOCK_UPDATED:
       return state.map((item) => (item.id === action.item.id ? action.updatedItem : item));
     case ITEM_HISTORY_FETCHED:
-      return state.map((item) => {
-        if (item.id === action.itemId) {
-          return {
-            ...item,
-            history: action.itemHistory,
-          };
+      return values({
+        ...state,
+        [action.itemIndex]: {
+          ...state[action.itemIndex],
+          history: action.itemHistory,
         }
-
-        return item;
       });
     default:
       return state;
@@ -101,7 +93,7 @@ export function addNewItem(item) {
   };
 }
 
-export function updateItem(itemId, itemProps, prevItemProps) {
+export function updateItem(itemIndex, itemId, itemProps, prevItemProps) {
   return (dispatch, getState, { ref, auth, storage }) => {
     function updateInvItem(props) {
       if (props.stock) {
@@ -124,7 +116,7 @@ export function updateItem(itemId, itemProps, prevItemProps) {
           image: e.target.result
         };
 
-        dispatch({ type: UPDATE_ITEM, itemId, itemProps: newItemProps });
+        dispatch({ type: UPDATE_ITEM, itemIndex, itemProps: newItemProps });
       };
       reader.readAsDataURL(itemProps.image[0]);
     }
@@ -161,11 +153,11 @@ export function updateItem(itemId, itemProps, prevItemProps) {
     ref.child('.info/serverTimeOffset').on('value', (fbTime) => {
       const time = new Date((Date.now() + fbTime.val())).toLocaleString();
 
-      _.forEach(itemProps, (val, key) => {
+      Object.keys(itemProps).forEach((propName) => {
         ref.child(`itemHistory/${itemId}/`)
           .push({
-            details: `${auth.currentUser.displayName} has updated the item ${key} from ${prevItemProps[key]} to ${itemProps[key]}.`,
-            category: key,
+            details: `${auth.currentUser.displayName} has updated the item ${propName} from ${prevItemProps[propName]} to ${itemProps[propName]}.`,
+            category: propName,
             time,
           });
       });
@@ -177,7 +169,7 @@ export function updateItem(itemId, itemProps, prevItemProps) {
         syncImage();
         updateInvItemId();
       } else {
-        dispatch({ type: UPDATE_ITEM, itemId, itemProps });
+        dispatch({ type: UPDATE_ITEM, itemIndex, itemProps });
         updateInvItemId();
       }
     } else {
@@ -185,7 +177,7 @@ export function updateItem(itemId, itemProps, prevItemProps) {
         readFile();
         syncImage();
       } else {
-        dispatch({ type: UPDATE_ITEM, itemId, itemProps });
+        dispatch({ type: UPDATE_ITEM, itemIndex, itemProps });
         updateInvItem(itemProps);
       }
     }
@@ -244,15 +236,15 @@ export function removeListenersToInventory() {
   };
 }
 
-export function fetchItemHistory(itemId) {
+export function fetchItemHistory(itemIndex, itemId) {
   return (dispatch, getState, { ref }) => {
     dispatch({ type: FETCH_ITEM_HISTORY });
 
     ref.child(`itemHistory/${itemId}`).once('value')
       .then((snap) => {
-        const itemHistory = snap.val() || {};
+        const itemHistory = values(snap.val()) || [];
 
-        dispatch({ type: ITEM_HISTORY_FETCHED, itemId, itemHistory });
+        dispatch({ type: ITEM_HISTORY_FETCHED, itemIndex, itemHistory });
       });
   };
 }

@@ -12,6 +12,7 @@ function mapStateToProps(state) {
             rowItemEdit,
             isDeletionEnabled,
             initFields,
+            selectedIndexes,
           }
         } } = state;
 
@@ -19,6 +20,7 @@ function mapStateToProps(state) {
     rowItemEdit,
     isDeletionEnabled,
     initialValues: initFields,
+    selectedIndex: selectedIndexes[0],
     selectedItems: getSelectedItems(state),
     items: getFilteredItems(state),
     categories: getProp(state, 'category'),

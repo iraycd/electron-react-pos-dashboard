@@ -22,7 +22,7 @@ import styles from './styles';
     'image',
     'feet'
   ]
-}, (state) => ({
+}, () => ({
   initialValues: {
     id: 0,
     cost: 1,
