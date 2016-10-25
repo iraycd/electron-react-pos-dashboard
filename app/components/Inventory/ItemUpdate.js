@@ -4,10 +4,11 @@ import { reduxForm } from 'redux-form';
 import TableRow from 'material-ui/Table/TableRow';
 import TableRowColumn from 'material-ui/Table/TableRowColumn';
 import TextField from 'material-ui/TextField';
-import Done from 'material-ui/svg-icons/action/done';
-import Cancel from 'material-ui/svg-icons/content/clear';
 import AutoComplete from 'material-ui/AutoComplete';
-import IconButton from 'material-ui/IconButton';
+import RaisedButton from 'material-ui/RaisedButton';
+import FlatButton from 'material-ui/FlatButton';
+
+import styles from './styles';
 
 @reduxForm({
   form: 'update_inventory_item',
@@ -34,26 +35,55 @@ class ItemUpdate extends Component {
     updateItem: PropTypes.func.isRequired,
   }
 
-  onFocus = () => {
+  constructor() {
+    super();
+
+    this.state = {
+      idError: '',
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { item, actions } = this.props;
+
+    if (item.id !== nextProps.item.id) {
+      actions.loadInitialValues(nextProps.item);
+    }
+  }
+
+  loadInitialValues = () => {
     const { item, actions, } = this.props;
 
     actions.loadInitialValues(item);
   }
 
   updateItem = () => {
+    const { item, values, fields, actions, selectedIndex, cancelEditing, } = this.props;
     const changedFields = {};
-    const { item, values, actions, itemIndex, } = this.props;
 
-    Object.keys(item).forEach((key) => {
-      if (values.hasOwnProperty(key) && values[key] !== item[key]) {
-        changedFields[key] = values[key];
+    if (!this.state.idError && fields.id.value && fields.name.value) {
+      Object.keys(item).forEach((key) => {
+        if (values.hasOwnProperty(key) && values[key] !== item[key]) {
+          changedFields[key] = values[key];
+        }
+      });
+
+      if (Object.keys(changedFields).length) {
+        actions.updateItem(selectedIndex, item.id, changedFields, item);
       }
-    });
 
-    if (Object.keys(changedFields).length) {
-      actions.updateItem(itemIndex, item.id, changedFields, item);
+      actions.editRowItem(-1);
+      if (cancelEditing) cancelEditing();
     }
-    actions.editRowItem(-1);
+  }
+
+  validateId = () => {
+    const { items, item, fields, } = this.props;
+    const foundItem = items.find((item) => item.id === fields.id.value);
+
+    this.setState({
+      idError: foundItem && foundItem.id !== item.id ? `Item ID is already used by ${foundItem.name}` : ''
+    });
   }
 
   render() {
@@ -61,102 +91,137 @@ class ItemUpdate extends Component {
 
     if (isItemDrawerEdit) {
       return (
-        <div>
-          <TextField // FIXME: number fields accepts 0 value
-            {...fields.id}
-            floatingLabelText="ID"
-            type="number"
-            min={1}
-            step={1}
-            onFocus={this.onFocus}
-            autoFocus
-          />
-          <br />
-          <AutoComplete
-            {...fields.name}
-            floatingLabelText="Item Name"
-            searchText={fields.name.value}
-            dataSource={itemsName}
-            filter={AutoComplete.fuzzyFilter}
-            openOnFocus
-          />
-          <br />
-          <TextField
-            {...fields.cost}
-            type="number"
-            floatingLabelText="Product Cost"
-            min={1}
-            step="any"
-          />
-          <br />
-          <TextField
-            {...fields.sellingPrice}
-            floatingLabelText="Selling Price"
-            type="number"
-            min={1}
-            step="any"
-          />
-          <br />
-          <TextField
-            {...fields.stock}
-            type="number"
-            step="any"
-            floatingLabelText="Stock"
-          />
-          <br />
-          <TextField
-            {...fields.category}
-            floatingLabelText="Category"
-          />
-          <br />
-          <TextField
-            {...fields.brand}
-            floatingLabelText="Brand"
-          />
-          <br />
-          <TextField
-            {...fields.supplier}
-            floatingLabelText="Supplier"
-          />
-          <br />
-          <TextField
-            {...fields.description}
-            floatingLabelText="Description"
-          />
-          <br />
-          <TextField
-            {...fields.image}
-            type="file"
-            floatingLabelText="image"
-            floatingLabelText="Image"
-            value={null}
-            fullWidth
-          />
-          <img src={item && item.image || './static/placeholder.jpg'} alt={item && item.name} width="250" height="200" />
-          <br />
-          <IconButton onTouchTap={cancelEditing} touch>
-            <Cancel />
-          </IconButton>
-          <IconButton
-            onTouchTap={() => {
-              this.updateItem();
-              cancelEditing();
+        <div style={styles.itemUpdateContainer}>
+          <h3
+            style={{
+              position: 'absolute',
+              top: '-1vh',
+              right: '17px',
+              color: '#9e9e9e'
             }}
-            touch
           >
-            <Done />
-          </IconButton>
+            {`Editing ${item.name}(ID#${item.id})`}
+          </h3>
+          <div
+            style={{
+              position: 'relative',
+              padding: '15px 15px 0 16px',
+            }}
+          >
+            <TextField // FIXME: number fields accepts 0 value
+              {...fields.id}
+              floatingLabelText="ID"
+              type="number"
+              min={1}
+              step={1}
+              onFocus={() => actions.loadInitialValues(item)}
+              onKeyUp={this.validateId}
+              errorText={this.state.idError}
+              autoFocus
+              fullWidth
+            />
+            <AutoComplete
+              {...fields.name}
+              floatingLabelText="Item Name"
+              searchText={fields.name.value}
+              dataSource={itemsName}
+              filter={AutoComplete.fuzzyFilter}
+              openOnFocus
+              fullWidth
+            />
+            <TextField
+              {...fields.cost}
+              type="number"
+              floatingLabelText="Product Cost"
+              min={1}
+              step="any"
+              fullWidth
+            />
+            <TextField
+              {...fields.sellingPrice}
+              floatingLabelText="Selling Price"
+              type="number"
+              min={1}
+              step="any"
+              fullWidth
+            />
+            <TextField
+              {...fields.stock}
+              type="number"
+              step="any"
+              floatingLabelText="Stock"
+              fullWidth
+            />
+            <TextField
+              {...fields.category}
+              floatingLabelText="Category"
+              fullWidth
+            />
+            <TextField
+              {...fields.brand}
+              floatingLabelText="Brand"
+              fullWidth
+            />
+            <TextField
+              {...fields.supplier}
+              floatingLabelText="Supplier"
+              fullWidth
+            />
+            <TextField
+              {...fields.description}
+              floatingLabelText="Description"
+              fullWidth
+            />
+            {/** <TextField
+              {...fields.image}
+              type="file"
+              floatingLabelText="image"
+              floatingLabelText="Image"
+              value={null}
+              fullWidth
+            />
+            <img src={item && item.image || './static/placeholder.jpg'} alt={item && item.name} width="250" height="200" /> **/ }
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '10px',
+            }}
+          >
+            <FlatButton
+              onTouchTap={cancelEditing}
+              secondary
+              label="Cancel"
+            />
+            <RaisedButton
+              onTouchTap={this.updateItem}
+              label="Update"
+              primary
+            />
+          </div>
         </div>
       );
     }
 
     return (
-      <TableRow key={item.id} selected={selected}>
+      <TableRow
+        key={item.id}
+        selected={selected}
+        style={{
+          width: '100%',
+          height: '100%',
+          overflowX: 'scroll'
+        }}
+      >
         <TableRowColumn>
           <TextField // FIXME: number fields accepts 0 value
             {...fields.id}
             floatingLabelText="ID"
             type="number"
+            onKeyUp={this.validateId}
+            errorText={this.state.idError}
+            errorStyle={{ whiteSpace: 'pre-line', wordBreak: 'break-word', height: '100%', width: '33%' }}
             min={1}
             step={1}
           />
@@ -195,18 +260,23 @@ class ItemUpdate extends Component {
             step="any"
             floatingLabelText="Stock"
             {...fields.stock}
-            onFocus={this.onFocus}
+            onFocus={() => actions.loadInitialValues(item)}
             autoFocus
           />
         </TableRowColumn>
-        <TableRowColumn />
-        <TableRowColumn style={{ textAlign: 'right' }}>
-          <IconButton onTouchTap={() => actions.editRowItem(-1)} touch>
-            <Cancel />
-          </IconButton>
-          <IconButton onTouchTap={this.updateItem} touch>
-            <Done />
-          </IconButton>
+        <TableRowColumn style={{ padding: 0, textAlign: 'center' }}>
+          <FlatButton
+            label="Cancel"
+            onTouchTap={() => actions.editRowItem(-1)}
+            secondary
+          />
+        </TableRowColumn>
+        <TableRowColumn style={{ padding: 0, textAlign: 'center' }}>
+          <RaisedButton
+            label="Update"
+            onTouchTap={this.updateItem}
+            primary
+          />
         </TableRowColumn>
       </TableRow>
     );

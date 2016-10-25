@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import { reduxForm } from 'redux-form';
+import { reduxForm, reset, } from 'redux-form';
 
 import FlatButton from 'material-ui/FlatButton';
 import Dialog from 'material-ui/Dialog';
@@ -51,25 +51,35 @@ export default class ItemSetup extends Component {
   constructor() {
     super();
 
-    this.state = { openDialog: false };
+    this.state = {
+      openDialog: false,
+      idError: '',
+    };
   }
 
-  _onBlurValidate = (e) => {
-    const { fields, actions } = this.props;
+  validateId = () => {
+    const { fields, items = [], } = this.props;
+    const foundItem = items.find((item) => item.id === fields.id.value);
 
-    actions.validateField(e.target.name, e.target.value);
-    fields.id.onBlur();
+    this.setState({
+      idError: foundItem ? `Item ID is already used by ${foundItem.name}` : ''
+    });
   }
 
   _addNewItem = (e) => {
     e.preventDefault();
-    const { values, actions, } = this.props;
+    const { values, actions, fields, items, } = this.props;
 
-    actions.addNewItem(values);
-    this.refs.productName.focus();
-    this.refs.categoryField.state.searchText = '';
-    this.refs.brandField.state.searchText = '';
-    this.refs.supplierField.state.searchText = '';
+    if (!this.state.idError && fields.id.value && fields.name.value) {
+      actions.addNewItem(values, () => {
+        actions.reset('new_inventory_item');
+        this.refs.productId.focus();
+      });
+
+      this.refs.categoryField.state.searchText = '';
+      this.refs.brandField.state.searchText = '';
+      this.refs.supplierField.state.searchText = '';
+    }
   }
 
   _handleCategoriesDialog = (e) => {
@@ -122,9 +132,12 @@ export default class ItemSetup extends Component {
               {...fields.id}
               type="number"
               min={1}
+              onKeyUp={this.validateId}
+              errorText={this.state.idError}
+              onFocus={(e) => e.target.select()}
               step="any"
               floatingLabelText="ID"
-              onBlur={this._onBlurValidate}
+              ref="productId"
               fullWidth
               autoFocus
               required
@@ -239,14 +252,15 @@ export default class ItemSetup extends Component {
               type="textarea"
               floatingLabelText="Description(optional)"
               fullWidth
+              multiLine
             />
-            <TextField
+            {/** <TextField
               {...fields.image}
               type="file"
               value={null}
               floatingLabelText="Image(optional)"
               fullWidth
-            />
+            /> **/}
             <br />
             <input className="hidden" type="submit" />
           </form>

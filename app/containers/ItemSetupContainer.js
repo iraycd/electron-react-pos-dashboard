@@ -4,11 +4,11 @@ import { reset } from 'redux-form';
 
 import ItemSetup from './../components/Inventory/ItemSetup';
 import { addNewItem } from './../redux/modules/inventoryItems';
-import { validateField } from './../redux/modules/inventoryUI';
 import { getProp, getFieldsError } from './../selectors/inventorySelectors.js';
 
 function mapStateToProps(state) {
   return {
+    items: state.inventory.items,
     fieldError: getFieldsError(state),
     categories: getProp(state, 'category'),
     brands: getProp(state, 'brand'),
@@ -17,7 +17,7 @@ function mapStateToProps(state) {
 }
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ addNewItem, validateField, reset }, dispatch)
+    actions: bindActionCreators({ addNewItem, reset }, dispatch)
   };
 }
 

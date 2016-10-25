@@ -67,25 +67,9 @@ export default function reducer(state = init, action) {
           name: action.search,
         }
       };
-    case VALIDATE_FIELD:
-      return {
-        ...state,
-        field: {
-          name: action.name,
-          value: action.val
-        }
-      };
     default:
       return state;
   }
-}
-
-export function validateField(name, val) {
-  return {
-    type: VALIDATE_FIELD,
-    name,
-    val
-  };
 }
 
 export function loadInitialValues(initialValues) {

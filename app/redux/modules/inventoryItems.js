@@ -30,13 +30,20 @@ export default function reducer(state = [], action) {
         [action.itemIndex]: {
           ...state[action.itemIndex],
           ...action.itemProps,
-          initialStock: action.itemProps.stock || state[action.itemIndex].item.stock,
+          initialStock: action.itemProps.stock || state[action.itemIndex].stock,
         }
       });
     case REMOVE_ITEMS:
+      // return values({
+      //   ...state,
+      //   ...action.itemsToRemove,
+      // });
       return state.filter((item) => !action.itemsToRemove.includes(item));
     case ITEM_STOCK_UPDATED:
-      return state.map((item) => (item.id === action.item.id ? action.updatedItem : item));
+      return values({
+        ...state,
+        [action.itemIndex]: action.updatedItem,
+      });
     case ITEM_HISTORY_FETCHED:
       return values({
         ...state,
@@ -50,12 +57,15 @@ export default function reducer(state = [], action) {
   }
 }
 
-export function addNewItem(item) {
+export function addNewItem(item, callback) {
   return (dispatch, getState, { ref, storage, timestamp }) => {
     function addInvItem(props) {
       ref.child(`inventory/${props.id}`)
         .set({ ...props, initialStock: props.stock, timestamp })
-        .then(() => dispatch({ type: NEW_ITEM_SYNCED }));
+        .then(() => {
+          dispatch({ type: NEW_ITEM_SYNCED });
+          callback();
+        });
     }
 
     if (item.image && item.image[0]) {
@@ -99,11 +109,11 @@ export function updateItem(itemIndex, itemId, itemProps, prevItemProps) {
       if (props.stock) {
         ref.child(`inventory/${itemId}`)
           .update({ ...props, initialStock: props.stock })
-          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps }));
+          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps: props }));
       } else {
         ref.child(`inventory/${itemId}`)
           .update(props)
-          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps }));
+          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED, itemId, itemProps: props }));
       }
     }
 
@@ -141,12 +151,16 @@ export function updateItem(itemIndex, itemId, itemProps, prevItemProps) {
 
     function updateInvItemId() {
       const oldChild = ref.child(`inventory/${itemId}`);
-      oldChild.once('value', snap => {
-        const newChildVal = { ...snap.val(), itemProps };
+
+      oldChild.once('value', () => {
+        const newChildVal = {
+          ...prevItemProps,
+          ...itemProps,
+          initialStock: itemProps.stock || prevItemProps.initialStock,
+        };
 
         ref.child(`inventory/${itemProps.id}`).set(newChildVal);
-        oldChild.remove()
-          .then(() => dispatch({ type: UPDATE_ITEM_SYNCED }));
+        oldChild.remove().then(() => dispatch({ type: UPDATE_ITEM_SYNCED }));
       });
     }
 
@@ -156,7 +170,9 @@ export function updateItem(itemIndex, itemId, itemProps, prevItemProps) {
       Object.keys(itemProps).forEach((propName) => {
         ref.child(`itemHistory/${itemId}/`)
           .push({
-            details: `${auth.currentUser.displayName} has updated the item ${propName} from ${prevItemProps[propName]} to ${itemProps[propName]}.`,
+            actor: auth.currentUser.displayName,
+            newVal: itemProps[propName],
+            oldVal: prevItemProps[propName],
             category: propName,
             time,
           });
@@ -219,12 +235,13 @@ export function fetchListenToInventory() {
       });
 
     ref.child('inventory').on('child_changed', (snap) => {
+      const { inventory: { items, } } = getState();
       const updatedItem = snap.val();
-      const origItem = getState().inventory.items
-        .reduce((prev, curr) => (prev.id === updatedItem.id ? prev : curr));
+      const itemIndex = items.findIndex((item) => item.id === updatedItem.id);
+      const origItem = items.reduce((prev, curr) => (prev.id === updatedItem.id ? prev : curr));
 
       if (origItem.stock !== updatedItem.stock) {
-        dispatch({ type: ITEM_STOCK_UPDATED, updatedItem });
+        dispatch({ type: ITEM_STOCK_UPDATED, itemIndex, updatedItem });
       }
     });
   };
@@ -242,8 +259,7 @@ export function fetchItemHistory(itemIndex, itemId) {
 
     ref.child(`itemHistory/${itemId}`).once('value')
       .then((snap) => {
-        const itemHistory = values(snap.val()) || [];
-
+        const itemHistory = snap.val() ? values(snap.val()) : ['None'];
         dispatch({ type: ITEM_HISTORY_FETCHED, itemIndex, itemHistory });
       });
   };

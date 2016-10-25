@@ -39,5 +39,50 @@ export default {
     height: '90px',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  itemDrawer: {
+    display: 'flex',
+    justifyContent: 'center',
+    height: '100vh',
+    padding: '5px 5px 5px 5px',
+  },
+  itemDrawerTopButtons: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    paddingBottom: '5px',
+  },
+  itemDrawerEditButton: {
+    position: 'fixed',
+    left: 0,
+    bottom: 0,
+    width: '100%',
+    height: 55,
+  },
+  itemUpdateContainer: {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    width: '100%',
+    height: '100vh',
+    padding: '0 5px 5px 5px',
+  },
+  itemPropsList: {
+    display: 'flex',
+    flexDirection: 'column',
+    marginBottom: 55,
+  },
+  center: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '90%',
+  },
+  wordBreak: {
+    display: 'block',
+    whiteSpace: 'pre-line',
+    wordBreak: 'break-word',
+    height: '100%',
   }
 };

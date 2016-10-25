@@ -29,6 +29,7 @@ import ArrowDropRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right'
 import More from 'material-ui/svg-icons/navigation/more-horiz';
 import Divider from 'material-ui/Divider';
 import TextField from 'material-ui/TextField';
+import LinearProgress from 'material-ui/LinearProgress';
 import styles from './styles';
 
 @Radium
@@ -83,6 +84,7 @@ export default class Inventory extends Component {
 
     e.preventDefault();
     actions.removeItems(selectedItems);
+    actions.toggleDeletion();
   }
 
   handleItemDrawer = (id) => {
@@ -98,14 +100,20 @@ export default class Inventory extends Component {
 
     const ItemSelectedLength = () => (
       <div style={styles.selectedLength}>
-        <IconButton onTouchTap={actions.toggleDeletion} touch>
-          <Cancel />
-        </IconButton>
-        <span style={{ position: 'relative', bottom: '6px' }}>
-          {selectedItems.length}&nbsp;
-          {selectedItems.length > 1 ? 'items' : 'item'}&nbsp;
-          selected
-        </span>
+        <FlatButton
+          label="Cancel"
+          onTouchTap={actions.toggleDeletion}
+          secondary
+        />
+        {isDeletionEnabled
+          ? (
+          <FlatButton
+            label={`Delete selected ${selectedItems.length > 1 ? 'items' : 'item'} (${selectedItems.length})`}
+            onTouchTap={isDeletionEnabled ? this.removeSelectedItems : null}
+            primary
+          />
+          )
+          : null}
       </div>
     );
 
@@ -115,6 +123,7 @@ export default class Inventory extends Component {
           <ItemDrawer
             open={this.state.isDrawerOpen}
             item={items[this.state.selectedItem]}
+            items={items}
             actions={actions}
             closeItemDrawer={() => this.setState({ isDrawerOpen: false })}
             updateItem={actions.updateItem}
@@ -128,85 +137,93 @@ export default class Inventory extends Component {
             onRowSelection={this.selectRows}
             multiSelectable={isDeletionEnabled}
             onCellClick={(rowNumber) => this.setState({ selectedItem: rowNumber })}
+            style={{ overflow: 'auto' }}
             fixedHeader
             fixedFooter
           >
-            <TableHeader adjustForCheckbox={isDeletionEnabled} displaySelectAll={isDeletionEnabled}>
+            <TableHeader
+              adjustForCheckbox={isDeletionEnabled}
+              displaySelectAll={isDeletionEnabled}
+            >
               <TableRow onTouchTap={(e) => e.preventDefault()} >
                 <TableHeaderColumn colSpan="7">
                   <div style={styles.superheader}>
-                    {
-                      isDeletionEnabled
-                      ? <ItemSelectedLength />
-                      : (
-                        <div style={{ display: 'inline-flex' }}>
-                          <ItemSetupContainer disabled={rowItemEdit !== -1} />
-                          <FlatButton
-                            label="Remove"
-                            onTouchTap={actions.toggleDeletion}
-                            disabled={rowItemEdit !== -1}
-                            primary
-                          />
-                        </div>
-                      )
-                    }
-                    <div>
+                    {isDeletionEnabled
+                    ? <ItemSelectedLength />
+                    : (
                       <div style={{ display: 'inline-flex' }}>
+                        <ItemSetupContainer disabled={rowItemEdit !== -1} />
+                        <FlatButton
+                          label="Remove"
+                          onTouchTap={actions.toggleDeletion}
+                          disabled={rowItemEdit !== -1}
+                          primary
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ display: 'inline-flex', width: '30vw' }}>
                         <TextField
                           hintText="Search by item name"
                           onChange={(e) => actions.searchItem(e.target.value.trim())}
                           fullWidth
                         />
+                        <IconMenu
+                          label="Filter"
+                          iconButtonElement={
+                            <IconButton
+                              tooltip="Filter"
+                              tooltipStyles={{ fontSize: 12.5 }}
+                              style={{ height: 41, padding: 0, }}
+                            >
+                              <FilterList />
+                            </IconButton>
+                          }
+                        >
+                          <MenuItem
+                            primaryText="All"
+                            style={{ textAlign: 'center' }}
+                            disabled={rowItemEdit !== -1}
+                            onTouchTap={() => actions.changeFilter('All')}
+                          />
+                          <Divider inset />
+                          <MenuItem
+                            primaryText="Category"
+                            leftIcon={<ArrowDropLeft />}
+                            menuItems={
+                              categories.map((cat) => (
+                                <MenuItem
+                                  value={cat}
+                                  primaryText={cat}
+                                  onTouchTap={() => actions.changeFilter('category', cat)}
+                                />))}
+                          />
+                          <MenuItem
+                            primaryText="Brand"
+                            leftIcon={<ArrowDropLeft />}
+                            menuItems={
+                              brands.map((brand) => (
+                                <MenuItem
+                                  value={brand}
+                                  primaryText={brand}
+                                  onTouchTap={() => actions.changeFilter('brand', brand)}
+                                />)
+                            )}
+                          />
+                          <MenuItem
+                            primaryText="Supplier"
+                            leftIcon={<ArrowDropLeft />}
+                            menuItems={
+                              suppliers.map((sup) => (
+                                <MenuItem
+                                  value={sup}
+                                  primaryText={sup}
+                                  onTouchTap={() => actions.changeFilter('supplier', sup)}
+                                />)
+                            )}
+                          />
+                        </IconMenu>
                       </div>
-                      <IconButton onTouchTap={isDeletionEnabled ? this.removeSelectedItems : null}>
-                        {isDeletionEnabled
-                          ? <Delete onTouchTap={this.removeSelectedItems} />
-                          : <Search disabled={rowItemEdit !== -1} />}
-                      </IconButton>
-                      <IconMenu iconButtonElement={<IconButton><FilterList /></IconButton>}>
-                        <MenuItem
-                          primaryText="All"
-                          style={{ textAlign: 'center' }}
-                          disabled={rowItemEdit !== -1}
-                          onTouchTap={() => actions.changeFilter('All')}
-                        />
-                        <Divider inset />
-                        <MenuItem
-                          primaryText="Category"
-                          leftIcon={<ArrowDropLeft />}
-                          menuItems={
-                            categories.map((cat) => (
-                              <MenuItem
-                                value={cat}
-                                primaryText={cat}
-                                onTouchTap={() => actions.changeFilter('category', cat)}
-                              />))}
-                        />
-                        <MenuItem
-                          primaryText="Brand"
-                          leftIcon={<ArrowDropLeft />}
-                          menuItems={
-                            brands.map((brand) => (
-                              <MenuItem
-                                value={brand}
-                                primaryText={brand}
-                                onTouchTap={() => actions.changeFilter('brand', brand)}
-                              />)
-                          )}
-                        />
-                        <MenuItem
-                          primaryText="Supplier"
-                          leftIcon={<ArrowDropLeft />}
-                          menuItems={
-                            suppliers.map((sup) => (
-                              <MenuItem
-                                value={sup}
-                                primaryText={sup}
-                                onTouchTap={() => actions.changeFilter('supplier', sup)}
-                              />)
-                          )}
-                        />
-                      </IconMenu>
                     </div>
                   </div>
                 </TableHeaderColumn>
@@ -220,29 +237,51 @@ export default class Inventory extends Component {
                 <TableHeaderColumn>More</TableHeaderColumn>
                 <TableHeaderColumn />
               </TableRow>
+              <LinearProgress
+                style={{
+                  display: items.length ? 'none' : 'block',
+                  width: '84vw',
+                }}
+              />
             </TableHeader>
             <TableBody
               displayRowCheckbox={isDeletionEnabled}
-              deselectOnClickaway={this.state.isDrawerOpen}
+              deselectOnClickaway={false}
               stripedRows
             >
+              {items.length
+              ? null
+              : (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '84vw',
+                    height: '60vh',
+                  }}
+                >
+                  <h1 style={{ color: '#9e9e9e' }}>Loading Items...</h1>
+                </div>
+              )}
               {items.map((item, i) => {
                 if (rowItemEdit === i && !this.state.isDrawerOpen) {
                   return (
                     <ItemUpdate
                       key={item.id}
                       item={item}
+                      items={items}
                       actions={actions}
                       initialValues={initialValues}
-                      selected={this.state.selectedRows.indexOf(i) !== -1}
+                      selected={this.state.selectedRows.includes(i)}
                       itemsName={items.map((item) => item.name)}
-                      itemIndex={i}
+                      selectedIndex={i}
                     />
                   );
                 }
 
                 return ( // TODO: select all checkboxes is throws an error map undefined
-                  <TableRow key={item.id} selected={this.state.selectedRows.indexOf(i) !== -1}>
+                  <TableRow key={item.id} selected={this.state.selectedRows.includes(i)}>
                     <TableRowColumn>{item.id}</TableRowColumn>
                     <TableRowColumn>{item.name}</TableRowColumn>
                     <TableRowColumn>{item.cost}</TableRowColumn>
@@ -268,7 +307,7 @@ export default class Inventory extends Component {
                 );
               })}
             </TableBody>
-            <TableFooter>
+            {/** <TableFooter>
               <TableRow>
                 <TableRowColumn />
                 <TableRowColumn />
@@ -285,7 +324,7 @@ export default class Inventory extends Component {
                   </IconButton>
                 </TableRowColumn>
               </TableRow>
-            </TableFooter>
+            </TableFooter> **/}
           </Table>
         </Paper>
       </div>

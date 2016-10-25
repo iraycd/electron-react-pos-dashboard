@@ -32,8 +32,6 @@ const styles = {
     height: '90vh',
     overflowY: 'auto',
   },
-  appbar: {
-  },
   hide: {
     display: 'none'
   }
@@ -58,10 +56,7 @@ export default class DashboardLayout extends Component {
   }
 
   render() {
-    const {
-      location,
-      params
-    } = this.props;
+    const { location, params, } = this.props;
     return (
       <div style={styles.bodyStyle}>
         <AppBar
@@ -93,12 +88,12 @@ export default class DashboardLayout extends Component {
               <span className="hidden-xs hidden-sm hidden-md">Activities</span>
             </MenuItem>
           </Link>
-          <Link to="/Analytics">
+          {/** <Link to="/Analytics">
             <MenuItem>
               <ShowChart />
               <span className="hidden-xs hidden-sm hidden-md">Analytics</span>
             </MenuItem>
-          </Link>
+          </Link> **/}
           <Link to="/Cashier">
             <MenuItem>
               <Cart />

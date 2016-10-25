@@ -13,7 +13,7 @@
       "jsx": true,
       "classes": true,
       "defaultParams": true,
-      "experimentalObjectRestSpread": true,
+      "experimentalObjectRestSpread": true
     }
   },
   "rules": {
@@ -25,7 +25,7 @@
     "consistent-return": 0,
     "no-underscore-dangle": 0,
     "no-shadow": 0,
-    "max-len": 0,
+    "max-len": 0
   },
   "plugins": [
     "react"
