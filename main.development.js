@@ -18,13 +18,16 @@ app.on('window-all-closed', () => {
 const installExtensions = async () => {
   if (process.env.NODE_ENV === 'development') {
     const installer = require('electron-devtools-installer'); // eslint-disable-line global-require
+
     const extensions = [
       'REACT_DEVELOPER_TOOLS',
       'REDUX_DEVTOOLS'
     ];
+
+    const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
     for (const name of extensions) {
       try {
-        await installer.default(installer[name]);
+        await installer.default(installer[name], forceDownload);
       } catch (e) {} // eslint-disable-line
     }
   }
@@ -35,11 +38,9 @@ app.on('ready', async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    minWidth: 950,
-    minHeight: 700
+    width: 1024,
+    height: 728
   });
-  mainWindow.openDevTools();
-  mainWindow.maximize();
 
   mainWindow.loadURL(`file://${__dirname}/app/app.html`);
 
