@@ -47,9 +47,12 @@ export default {
     padding: '5px 5px 5px 5px',
   },
   itemDrawerTopButtons: {
+    position: 'relative',
     display: 'flex',
     justifyContent: 'space-between',
+    width: '100%',
     paddingBottom: '5px',
+    zIndex: 2,
   },
   itemDrawerEditButton: {
     position: 'fixed',

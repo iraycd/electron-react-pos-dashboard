@@ -250,7 +250,21 @@ export default class Inventory extends Component {
               stripedRows
             >
               {items.length
-              ? null
+              ? items[0] === 'None'
+                ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      width: '84vw',
+                      height: '60vh',
+                    }}
+                  >
+                    <h1 style={{ color: '#9e9e9e' }}>No Items</h1>
+                  </div>
+                )
+                : null
               : (
                 <div
                   style={{
@@ -265,6 +279,10 @@ export default class Inventory extends Component {
                 </div>
               )}
               {items.map((item, i) => {
+                if (item === 'None') {
+                  return null;
+                }
+
                 if (rowItemEdit === i && !this.state.isDrawerOpen) {
                   return (
                     <ItemUpdate

@@ -9,6 +9,14 @@ export default {
   },
   gridTile: {
     cursor: 'pointer',
+    backgroundColor: 'green',
+    overflowWrap: 'break-word',
+    textOverflow: 'initial',
+  },
+  gridTileTitle: {
+    width: '50px',
+    fontSize: '2rem',
+    whiteSpace: 'pre-line',
   },
   cartList: {
     height: '70vh',

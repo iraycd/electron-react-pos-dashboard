@@ -18,8 +18,29 @@ export default class ItemDrawer extends Component {
     this.state = {
       isEditing: false,
       isHistoryShowed: false,
+      isFixed: false,
     };
   }
+
+  componentDidMount() {
+    this.refs.container.addEventListener('scroll', this.handleScroll);
+  }
+
+  componentWillUnmount() {
+    this.refs.container.removeEventListener('scroll', this.handleScroll);
+  }
+
+  handleScroll = (e) => {
+    if (e.target.scrollTop >= 41) {
+      if (!this.state.isFixed) {
+        this.setState({ isFixed: true });
+      }
+    } else {
+      if (this.state.isFixed && e.target.scrollTop !== 24) {
+        this.setState({ isFixed: false });
+      }
+    }
+  };
 
   render() {
     const { open, items, item = {}, initialValues, actions, closeItemDrawer, selectedIndex, } = this.props;
@@ -67,23 +88,32 @@ export default class ItemDrawer extends Component {
             }
 
             return (
-              <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
-                <Paper style={styles.itemDrawerTopButtons}>
-                  <FlatButton
-                    onTouchTap={closeItemDrawer}
-                    label="Hide"
-                    secondary
-                  />
-                  <FlatButton
-                    onTouchTap={(e) => {
-                      e.stopPropagation();
-                      this.setState({ isHistoryShowed: true });
-                    }}
-                    label="Show History"
-                    labelColor="#009688"
-                    primary
-                  />
-                </Paper>
+              <div ref="container" style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+                <div style={{ position: 'relative', width: '100%', height: 41 }}>
+                  <Paper
+                    ref="header"
+                    style={
+                      this.state.isFixed
+                      ? { ...styles.itemDrawerTopButtons, position: 'fixed' }
+                      : styles.itemDrawerTopButtons
+                    }
+                  >
+                    <FlatButton
+                      onTouchTap={closeItemDrawer}
+                      label="Hide"
+                      secondary
+                    />
+                    <FlatButton
+                      onTouchTap={(e) => {
+                        e.stopPropagation();
+                        this.setState({ isHistoryShowed: true });
+                      }}
+                      label="Show History"
+                      labelColor="#009688"
+                      primary
+                    />
+                  </Paper>
+                </div>
                 <List style={styles.itemPropsList}>
                   <ListItem
                     primaryText="ID"

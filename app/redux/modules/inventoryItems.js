@@ -20,9 +20,15 @@ export default function reducer(state = [], action) {
     case ALL_ITEMS_FETCHED:
       return action.items;
     case NEW_ITEM:
+      if (state[0] === 'None') {
+        return [
+          action.newItem,
+        ];
+      }
+
       return [
+        action.newItem,
         ...state,
-        action.newItem
       ];
     case UPDATE_ITEM:
       return values({
@@ -58,14 +64,26 @@ export default function reducer(state = [], action) {
 }
 
 export function addNewItem(item, callback) {
-  return (dispatch, getState, { ref, storage, timestamp }) => {
+  return (dispatch, getState, { ref, storage }) => {
+    const newItem = {
+      ...item,
+      category: item.category || 'Others',
+      supplier: item.supplier || 'Others',
+      brand: item.brand || 'Others',
+      initialStock: item.stock,
+    };
+
     function addInvItem(props) {
-      ref.child(`inventory/${props.id}`)
-        .set({ ...props, initialStock: props.stock, timestamp })
-        .then(() => {
-          dispatch({ type: NEW_ITEM_SYNCED });
-          callback();
-        });
+      ref.child('.info/serverTimeOffset').on('value', (fbTime) => {
+        const time = new Date((Date.now() + fbTime.val()));
+
+        ref.child(`inventory/${props.id}`)
+          .set({ ...props, time: -time, })
+          .then(() => {
+            dispatch({ type: NEW_ITEM_SYNCED });
+            callback();
+          });
+      });
     }
 
     if (item.image && item.image[0]) {
@@ -89,16 +107,16 @@ export function addNewItem(item, callback) {
       }, (err) => {
         console.log(err);
       }, () => {
-        const newItem = {
-          ...item,
+        const newItemWithImage = {
+          ...newItem,
           image: uploadTask.snapshot.downloadURL
         };
 
-        addInvItem(newItem);
+        addInvItem(newItemWithImage);
       });
     } else {
-      dispatch({ type: NEW_ITEM, newItem: { ...item, initialStock: item.stock } });
-      addInvItem(item);
+      dispatch({ type: NEW_ITEM, newItem });
+      addInvItem(newItem);
     }
   };
 }
@@ -156,6 +174,7 @@ export function updateItem(itemIndex, itemId, itemProps, prevItemProps) {
         const newChildVal = {
           ...prevItemProps,
           ...itemProps,
+          history: null,
           initialStock: itemProps.stock || prevItemProps.initialStock,
         };
 
@@ -225,10 +244,21 @@ export function fetchListenToInventory() {
   return (dispatch, getState, { ref }) => {
     dispatch({ type: FETCH_ALL_ITEMS });
 
-    ref.child('inventory').once('value')
+    ref.child('inventory')
+      .orderByChild('time')
+      .once('value')
       .then((snap) => {
-        const rawItems = snap.val();
-        const items = Object.keys(rawItems).map((key) => rawItems[key]);
+        // const rawItems = snap.val();
+        // const items = Object.keys(rawItems).map((key) => rawItems[key]);
+        const items = [];
+
+        if (snap.val()) {
+          snap.forEach((data) => {
+            items.push(data.val());
+          });
+        } else {
+          items.push('None');
+        }
 
         dispatch({ type: ALL_ITEMS_FETCHED, items });
         // localStorage.setObj('inventoryItems', items);
@@ -237,7 +267,7 @@ export function fetchListenToInventory() {
     ref.child('inventory').on('child_changed', (snap) => {
       const { inventory: { items, } } = getState();
       const updatedItem = snap.val();
-      const itemIndex = items.findIndex((item) => item.id === updatedItem.id);
+      const itemIndex = items.findIndex(( item) => item.id === updatedItem.id);
       const origItem = items.reduce((prev, curr) => (prev.id === updatedItem.id ? prev : curr));
 
       if (origItem.stock !== updatedItem.stock) {

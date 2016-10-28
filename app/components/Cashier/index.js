@@ -358,7 +358,7 @@ export default class Cashier extends Component {
                 cols={4}
                 cellHeight={220}
               >
-                {tiles.filter((tile) => new RegExp(`(${state.searchText})+`, 'ig').test(tile.name || tile))
+                {tiles.filter((tile) => RegExp(`(${state.searchText})+`, 'ig').test(tile.name || tile))
                   .map((tile, i) => (
                     <Paper
                       zDepth={2}
@@ -372,20 +372,20 @@ export default class Cashier extends Component {
                         key={i}
                         title={
                           tile.name
-                          ? <span style={{ fontSize: '2.5rem', }}>{tile.name}</span>
-                          : <span style={{ fontSize: '2.5rem', }}>{tile}</span>
+                          ? <span style={styles.gridTileTitle}>{tile.name}</span>
+                          : <span style={styles.gridTileTitle}>{tile}</span>
                         }
                         titlePosition={tile.name ? 'bottom' : 'top'}
                         onTouchTap={tile.name ? () => tile.stock && this._toggleQuantifying(tile) : () => actions.selectGroup(tile)}
                         style={styles.gridTile}
                         subtitle={
                           tile.sellingPrice ?
-                            <h2 style={{ margin: 0 }}>
+                            <h3 style={{ margin: 0 }}>
                               <span>Price: ₱<b>{Math.floor(tile.sellingPrice)}</b></span>
                               &nbsp; <br />
                               Stock: <b>{Math.floor(tile.stock) || 'Out of Stock'}</b>
-                            </h2>
-                            : <h2 style={{ margin: 0 }}>{items.filter((item) => item[selectedFilter] === tile).length} item/s</h2>
+                            </h3>
+                            : <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{items.filter((item) => item[selectedFilter] === tile).length} item/s</h3>
                         }
                         actionIcon={
                           tile.name ?
@@ -408,11 +408,11 @@ export default class Cashier extends Component {
                             </IconMenu>)
                         }
                       >
-                        <img
+                        {/** <img
                           src={tile.image || tile.image === '' ? './static/placeholder.jpg' : './static/category.png'}
                           alt="placeholder"
                           style={styles.images}
-                        />
+                        /> **/}
                       </GridTile>
                     </Paper>
                   ))}

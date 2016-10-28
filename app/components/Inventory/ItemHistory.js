@@ -50,7 +50,6 @@ export default class ItemHistory extends Component {
   }
 
   handleScroll = (e) => {
-    console.log(e.target.scrollTop);
     if (e.target.scrollTop >= 41) {
       if (!this.state.isFixed) {
         this.setState({ isFixed: true });
@@ -67,51 +66,53 @@ export default class ItemHistory extends Component {
 
     return (
       <div ref="container" style={{ width: '100%', height: '100%', overflow: 'auto' }}>
-        <Paper
-          style={{
-            position: this.state.isFixed ? 'fixed' : 'relative',
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '100%',
-            zIndex: 2,
-          }}
-          ref="header"
-        >
-          <FlatButton
-            label="Back"
-            onTouchTap={closeHistory}
-            secondary
-          />
-          <IconMenu
-            iconButtonElement={
-              <IconButton
-                tooltip="Filter"
-                tooltipStyles={{ fontSize: 12.5 }}
-                style={{ height: 41, padding: 0, }}
-              >
-                <FilterList />
-              </IconButton>
-            }
-            style={{ bottom: 5 }}
+        <div style={{ position: 'relative', width: '100%', height: 41 }}>
+          <Paper
+            style={{
+              position: this.state.isFixed ? 'fixed' : 'relative',
+              display: 'flex',
+              justifyContent: 'space-between',
+              width: '100%',
+              zIndex: 2,
+            }}
+            ref="header"
           >
-            <MenuItem
-              primaryText="All"
-              style={{ textAlign: 'center' }}
-              onTouchTap={() => this.setState({ filterProp: 'All' })}
+            <FlatButton
+              label="Back"
+              onTouchTap={closeHistory}
+              secondary
             />
-            <Divider />
-            {Object.keys(item)
-              .filter((itemProp) => history.some((his) => his.category === itemProp))
-              .map((itemProp) => (
-                <MenuItem
-                  value={itemProp}
-                  primaryText={itemProp}
-                  onTouchTap={() => this.setState({ filterProp: itemProp })}
-                />
-                )
-              )}
-          </IconMenu>
-        </Paper>
+            <IconMenu
+              iconButtonElement={
+                <IconButton
+                  tooltip="Filter"
+                  tooltipStyles={{ fontSize: 12.5 }}
+                  style={{ height: 41, padding: 0, }}
+                >
+                  <FilterList />
+                </IconButton>
+              }
+              style={{ bottom: 5 }}
+            >
+              <MenuItem
+                primaryText="All"
+                style={{ textAlign: 'center' }}
+                onTouchTap={() => this.setState({ filterProp: 'All' })}
+              />
+              <Divider />
+              {Object.keys(item)
+                .filter((itemProp) => history.some((his) => his.category === itemProp))
+                .map((itemProp) => (
+                  <MenuItem
+                    value={itemProp}
+                    primaryText={itemProp}
+                    onTouchTap={() => this.setState({ filterProp: itemProp })}
+                  />
+                  )
+                )}
+            </IconMenu>
+          </Paper>
+        </div>
         <div style={history.length ? { display: 'none' } : styles.center}>
           <CircularProgress size={2} />
         </div>

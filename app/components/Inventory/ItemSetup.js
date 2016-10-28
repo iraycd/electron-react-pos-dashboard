@@ -243,7 +243,7 @@ export default class ItemSetup extends Component {
             <TextField
               {...fields.feet}
               type="number"
-              floatingLabelText="Feet(for steels etc.)"
+              floatingLabelText="Feet(for steels and alike)"
               fullWidth
             />
             <br />
