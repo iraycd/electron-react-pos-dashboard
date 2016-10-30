@@ -8,15 +8,10 @@ export default {
     display: 'none',
   },
   gridTile: {
+    color: '#fafafa',
+    backgroundColor: '#37474f',
+    borderRadius: 3,
     cursor: 'pointer',
-    backgroundColor: 'green',
-    overflowWrap: 'break-word',
-    textOverflow: 'initial',
-  },
-  gridTileTitle: {
-    width: '50px',
-    fontSize: '2rem',
-    whiteSpace: 'pre-line',
   },
   cartList: {
     height: '70vh',
@@ -55,8 +50,9 @@ export default {
   gridTilePaper: {
     width: '100%',
     height: '100%',
-    padding: 3,
-    borderRadius: 5
+    backgroundColor: '#fafafa',
+    borderRadius: 2.5,
+    marginRight: 5
   },
   purchaseButton: {
     display: 'flex',

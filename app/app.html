@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>Hello Electron React!</title>
     <link rel="stylesheet" href="../node_modules/font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="./static/bootstrap.min.css" />
     <script>
       if (!process.env.HOT) {
         const link = document.createElement('link');
@@ -18,7 +19,7 @@
     <script>
       {
         const script = document.createElement('script');
-        const port = process.env.PORT || 3000;
+        const port = process.env.PORT || 5000;
         script.src = (process.env.HOT) ? `http://localhost:${port}/dist/bundle.js` : '../dist/bundle.js';
         document.write(script.outerHTML);
       }

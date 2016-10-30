@@ -32,7 +32,6 @@ export default validate({
   },
 
   plugins: [],
->>>>>>> dce208267ef1890cdb3c2af7f944d82b5ab502a3
   externals: [
     // put your node 3rd party libraries which can't be built with webpack here
     // (mysql, mongodb, and so on..)

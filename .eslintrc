@@ -36,7 +36,6 @@
     "max-len": 0,
   },
   "plugins": [
-    "flowtype-errors",
     "import",
     "promise",
     "react"
@@ -49,4 +48,3 @@
     }
   }
 }
->>>>>>> dce208267ef1890cdb3c2af7f944d82b5ab502a3

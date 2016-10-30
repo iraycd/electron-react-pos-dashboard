@@ -287,7 +287,6 @@ export default class Cashier extends Component {
               type="number"
               step="any"
               min={1}
-              step={1}
               name="quantity"
               value={state.quantity}
               onChange={this._handleQuantity}
@@ -347,6 +346,9 @@ export default class Cashier extends Component {
                   <h3 style={{ display: 'inline-block' }}>{state.searchText}</h3>
                 </div>
               }
+              style={{
+                backgroundColor: '#00acc1',
+              }}
             />
           </div>
           <div style={tiles.length > 0 ? styles.hide : styles.tilesLoader}>
@@ -354,10 +356,7 @@ export default class Cashier extends Component {
           </div>
           <div className="col-md-12">
             <div style={styles.tilesContainer}>
-              <GridList
-                cols={4}
-                cellHeight={220}
-              >
+              <GridList cellHeight={205} cols={4} padding={9}>
                 {tiles.filter((tile) => RegExp(`(${state.searchText})+`, 'ig').test(tile.name || tile))
                   .map((tile, i) => (
                     <Paper
@@ -370,22 +369,26 @@ export default class Cashier extends Component {
                     >
                       <GridTile
                         key={i}
-                        title={
-                          tile.name
-                          ? <span style={styles.gridTileTitle}>{tile.name}</span>
-                          : <span style={styles.gridTileTitle}>{tile}</span>
-                        }
+                        title={tile.name ? null : <span style={{ ...styles.gridTileTitle, fontSize: 'calc(8.3px + 1.5vw)' }}>{tile}</span>}
                         titlePosition={tile.name ? 'bottom' : 'top'}
                         onTouchTap={tile.name ? () => tile.stock && this._toggleQuantifying(tile) : () => actions.selectGroup(tile)}
                         style={styles.gridTile}
                         subtitle={
-                          tile.sellingPrice ?
-                            <h3 style={{ margin: 0 }}>
-                              <span>Price: ₱<b>{Math.floor(tile.sellingPrice)}</b></span>
-                              &nbsp; <br />
-                              Stock: <b>{Math.floor(tile.stock) || 'Out of Stock'}</b>
-                            </h3>
-                            : <h3 style={{ fontSize: '1.8rem', margin: 0 }}>{items.filter((item) => item[selectedFilter] === tile).length} item/s</h3>
+                          tile.sellingPrice
+                            ? null
+                            : (
+                              <h3
+                                style={{
+                                  fontSize: 'calc(8.5px + 1vw)',
+                                  lineHeight: '1',
+                                  wordWrap: 'break-word',
+                                  whiteSpace: 'pre-line',
+                                  margin: 0,
+                                }}
+                              >
+                                {items.filter((item) => item[selectedFilter] === tile).length} item/s
+                              </h3>
+                            )
                         }
                         actionIcon={
                           tile.name ?
@@ -408,6 +411,64 @@ export default class Cashier extends Component {
                             </IconMenu>)
                         }
                       >
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            height: '100%',
+                            padding: '0 12px 2px 12px',
+                          }}
+                        >
+                          {tile.name ? (
+                            <span
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexGrow: '1',
+                                width: '100%',
+                                fontSize: 'calc(18px + 1vw)',
+                                lineHeight: '1',
+                                wordWrap: 'break-word',
+                              }}
+                            >
+                              {tile.feet ? (
+                                <span>
+                                  <span style={{ backgroundColor: '#263238', padding: '0 4px 0 4px', borderRadius: '2px' }}>
+                                    {`${tile.feet}ft`}
+                                  </span>
+                                  &nbsp;{tile.name}
+                                </span>
+                              )
+                              : tile.name}
+                            </span>
+                          )
+                          : null}
+                          {tile.sellingPrice
+                            ? (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'flex-end',
+                                  alignItems: 'flex-end',
+                                  flexGrow: '1',
+                                  fontSize: 'calc(8.5px + 1.2vw)',
+                                  paddingLeft: '0.5vw',
+                                }}
+                              >
+                                <span style={{ marginBottom: '-6px', }}>
+                                  ₱<b style={{ fontSize: 'calc(25px + 1.7vw)', }}>{tile.sellingPrice}</b>
+                                </span>
+                                <span style={{ fontSize: 'calc(5px + 1.3vw)', textDecoration: 'overline' }}>
+                                  <span style={Math.floor(tile.stock) ? null : styles.hide}>Stock: </span>
+                                  <b>{Math.floor(tile.stock) || 'Out of Stock'}</b>
+                                </span>
+                              </div>
+                            )
+                            : null}
+                        </div>
                         {/** <img
                           src={tile.image || tile.image === '' ? './static/placeholder.jpg' : './static/category.png'}
                           alt="placeholder"
