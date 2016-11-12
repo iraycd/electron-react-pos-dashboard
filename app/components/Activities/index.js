@@ -25,7 +25,6 @@ export default class Activities extends Component {
   static propTypes = {
     activities: PropTypes.object.isRequired,
     actions: PropTypes.object.isRequired,
-    activity: PropTypes.object,
   }
 
   constructor() {
@@ -64,26 +63,27 @@ export default class Activities extends Component {
               </span>
             </Subheader>
             <div style={{ padding: 10 }}>
-            {activities[now] && Object.keys(activities[now]).map((timestamp) => {
-              const activityNow = activities[now][timestamp];
-              const activityTileProps = {
-                isActivityNowChanged: activityNow.changedCartTime || activityNow.refundedCartTime,
-                transactionTime: new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString(),
-                cartTotal() {
-                  return activityNow.cart
-                    .map((item) => item.quantity * item.sellingPrice)
-                    .reduce((p, c) => p + c);
-                }
-              };
+              {activities[now] && Object.keys(activities[now]).map((timestamp) => {
+                const activityNow = activities[now][timestamp];
+                const activityTileProps = {
+                  isActivityNowChanged: activityNow.changedCartTime || activityNow.refundedCartTime,
+                  transactionTime: new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString(),
+                  cartTotal() {
+                    return activityNow.cart
+                      .map((item) => item.quantity * item.sellingPrice)
+                      .reduce((p, c) => p + c);
+                  }
+                };
 
-              return (
-                <ActivityTile
-                  {...activityTileProps}
-                  activityNow={activityNow}
-                  toggleActivity={actions.toggleActivity}
-                />
-              );
-            })}
+                return (
+                  <ActivityTile
+                    {...activityTileProps}
+                    activityNow={activityNow}
+                    toggleActivity={actions.toggleActivity}
+                    timestamp={timestamp}
+                  />
+                );
+              })}
             </div>
           </Paper>
         </div>
@@ -114,7 +114,7 @@ export default class Activities extends Component {
             </ToolbarGroup>
           </Toolbar>
           <div style={styles.past}>
-          {Object.keys(activities)
+            {Object.keys(activities)
             .map((activity) => (activity !== new Date().toLocaleDateString().replace(/\//g, '-') ? activity : null))
             .filter((activity) => (this.state.selectedDate ? activity === this.state.selectedDate : activity))
             .map((dayMonth) => (
@@ -129,57 +129,57 @@ export default class Activities extends Component {
                                                     .reduce((p, c) => p + c, 0)}
                   </Subheader>
                   <Divider />
-                {activities && Object.keys(activities[dayMonth]).map((timestamp) => {
-                  const activity = activities[dayMonth][timestamp];
+                  {activities && Object.keys(activities[dayMonth]).map((timestamp) => {
+                    const activity = activities[dayMonth][timestamp];
 
-                  return (
-                    <ListItem
-                      nestedItems={
-                        activity.cart.map((item) => (
-                          <ListItem
-                            nestedItems={[
-                              <ListItem>
-                                Price: {`₱${item.sellingPrice}`}
-                              </ListItem>,
-                              <ListItem>
-                                Subtotal: {`₱${item.quantity * item.sellingPrice}`}
-                              </ListItem>,
-                              <ListItem>
-                                Remaining Stock/s: {item.stock}
-                              </ListItem>
-                            ]}
-                            primaryTogglesNestedList
+                    return (
+                      <ListItem
+                        nestedItems={
+                          activity.cart.map((item) => (
+                            <ListItem
+                              nestedItems={[
+                                <ListItem>
+                                  Price: {`₱${item.sellingPrice}`}
+                                </ListItem>,
+                                <ListItem>
+                                  Subtotal: {`₱${item.quantity * item.sellingPrice}`}
+                                </ListItem>,
+                                <ListItem>
+                                  Remaining Stock/s: {item.stock}
+                                </ListItem>
+                              ]}
+                              primaryTogglesNestedList
+                            >
+                              {item.name} x{item.quantity}
+                            </ListItem>
+                          ))
+                        }
+                        primaryTogglesNestedList
+                      >
+                        <Link to={`/cashier/${timestamp}`}>
+                          <IconButton
+                            className={activity.changedCartTime ? 'hide' : ''}
+                            touch
                           >
-                            {item.name} x{item.quantity}
-                          </ListItem>
-                        ))
-                      }
-                      primaryTogglesNestedList
-                    >
-                      <Link to={`/cashier/${timestamp}`}>
+                            <ModeEdit />
+                          </IconButton>
+                        </Link>
                         <IconButton
+                          onTouchTap={() => actions.toggleActivity(timestamp, 'refund')}
                           className={activity.changedCartTime ? 'hide' : ''}
                           touch
                         >
-                          <ModeEdit />
+                          <Return />
                         </IconButton>
-                      </Link>
-                      <IconButton
-                        onTouchTap={() => actions.toggleActivity(timestamp, 'refund')}
-                        className={activity.changedCartTime ? 'hide' : ''}
-                        touch
-                      >
-                        <Return />
-                      </IconButton>
-                      <span style={{ textDecoration: activity.changedCartTime ? 'line-through' : 'none' }}>
-                        ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
-                        Cart Total: ₱ {activity.cart
-                                        .map((item) => item.quantity * item.sellingPrice)
-                                        .reduce((p, c) => p + c)}
-                      </span>
-                    </ListItem>
+                        <span style={{ textDecoration: activity.changedCartTime ? 'line-through' : 'none' }}>
+                          ({new Date(timestamp.slice(0, -3) * 1000).toLocaleTimeString()})
+                          Cart Total: ₱ {activity.cart
+                                          .map((item) => item.quantity * item.sellingPrice)
+                                          .reduce((p, c) => p + c)}
+                        </span>
+                      </ListItem>
                   );
-                })}
+                  })}
                 </List>
               </Paper>
           ))}

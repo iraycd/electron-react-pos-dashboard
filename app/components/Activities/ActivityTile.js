@@ -10,49 +10,56 @@ import Return from 'material-ui/svg-icons/content/undo';
 import styles from './styles';
 
 const ActivityTile = ({
-  timestamp,
+  timestamp = 0,
   isActivityNowChanged,
   actions,
   transactionTime,
   activityNow,
   cartTotal,
-}) => (
-  <Paper zDepth={2} style={styles.activityNow}>
-    <div>
-      <Link to={`/cashier/${timestamp}`}>
-        <IconButton className={isActivityNowChanged ? 'hide' : ''} touch>
-          <ModeEdit />
+  toggleActivity,
+}) => {
+  const strikeActivity = {
+    textDecoration: isActivityNowChanged ? 'line-through' : 'none'
+  };
+
+  return (
+    <Paper zDepth={2} style={styles.activityNow}>
+      <div>
+        <Link to={`/cashier/${timestamp}`}>
+          <IconButton className={isActivityNowChanged ? 'hide' : ''} touch>
+            <ModeEdit />
+          </IconButton>
+        </Link>
+        <IconButton
+          onTouchTap={() => toggleActivity(timestamp, 'refund')}
+          className={activityNow.refundedCartTime || !isActivityNowChanged ? '' : 'hide'}
+          touch
+        >
+          <Return />
         </IconButton>
-      </Link>
-      <IconButton
-        onTouchTap={() => toggleActivity(timestamp, 'refund')}
-        className={activityNow.refundedCartTime || !isActivityNowChanged ? '' : 'hide'}
-        touch
-      >
-        <Return />
-      </IconButton>
-      &nbsp;
-      <span
-        className="pull-right"
-        style={{ textDecoration: isActivityNowChanged ? 'line-through' : 'none' }}
-      >
-        {transactionTime}
+        &nbsp;
+        <span
+          className="pull-right"
+          style={strikeActivity}
+        >
+          {transactionTime}
+        </span>
+      </div>
+      {activityNow.cart.map((item, i) => (
+        <li
+          key={i}
+          style={strikeActivity}
+        >
+          {item.name} x {item.quantity} = ₱{item.sellingPrice * item.quantity}
+        </li>
+      ))}
+      <Divider />
+      <span style={strikeActivity}>
+        Cart Total: ₱{cartTotal()}
       </span>
-    </div>
-    {activityNow.cart.map((item, i) => (
-      <li
-        key={i}
-        style={{ textDecoration: isActivityNowChanged ? 'line-through' : 'none' }}
-      >
-        {item.name} x {item.quantity} = ₱{item.sellingPrice * item.quantity}
-      </li>
-    ))}
-    <Divider />
-    <span style={{ textDecoration: isActivityNowChanged ? 'line-through' : 'none' }}>
-      Cart Total: ₱{cartTotal()}
-    </span>
-  </Paper>
-);
+    </Paper>
+  );
+};
 
 ActivityTile.propTypes = {
 

@@ -26,7 +26,10 @@ import Cancel from 'material-ui/svg-icons/content/clear';
 import ViewList from 'material-ui/svg-icons/action/view-list';
 import Info from 'material-ui/svg-icons/action/info-outline';
 import RemoveCart from 'material-ui/svg-icons/action/remove-shopping-cart';
+import FilterList from 'material-ui/svg-icons/content/filter-list';
+import Sort from 'material-ui/svg-icons/content/sort';
 import DropDownMenu from 'material-ui/DropDownMenu';
+import SummaryModal from './SummaryModal';
 import styles from './styles';
 
 @Radium
@@ -44,12 +47,14 @@ export default class Cashier extends Component {
       quantity: 1,
       quantityError: '',
       searchText: '',
+      currentFilter: 'All',
+      currentSort: 'Price (ASC)',
+      isSummaryOpen: false,
     };
   }
 
-  componentWillMount() {
-    const { params, activities, actions, items, } = this.props;
-
+  componentDidMount() {
+    const { params = {}, activities = {}, actions, items = [], } = this.props;
 
     if (params.timestamp) {
       const date = new Date(params.timestamp.slice(0, -3) * 1000)
@@ -57,8 +62,7 @@ export default class Cashier extends Component {
         .replace(/\//g, '-');
 
       const activityCart = activities[date][params.timestamp].cart.map((rItem) => {
-        const rItemIndex = items.map((item) => item.id)
-          .indexOf(rItem.id);
+        const rItemIndex = items.findIndex((item) => item.id === rItem.id);
 
         return {
           ...rItem,
@@ -80,7 +84,7 @@ export default class Cashier extends Component {
     actions.removeListenersToInventory();
   }
 
-  _toggleQuantifying = (prop = {}, isUpdating = false, next) => {
+  toggleQuantifying = (prop = {}, isUpdating = false, next) => {
     const { state } = this;
 
     this.setState({
@@ -96,7 +100,7 @@ export default class Cashier extends Component {
     }
   }
 
-  _handleQuantity = (e = { target: { value: 1 } }) => {
+  handleQuantity = (e = { target: { value: 1 } }) => {
     const { props: { activities, cart, params, }, state } = this;
     const value = +e.target.value;
     const stock = Math.floor(state.selectedItem.stock);
@@ -137,7 +141,7 @@ export default class Cashier extends Component {
     }
   }
 
-  _submitQuantity = (e) => {
+  submitQuantity = (e) => {
     e.preventDefault();
     const {
       props: {
@@ -174,30 +178,31 @@ export default class Cashier extends Component {
 
     if (!state.quantityError && state.selectedItem !== undefined) {
       actions.addCartItem(item);
-      this._handleQuantity();
-      this._toggleQuantifying();
+      this.handleQuantity();
+      this.toggleQuantifying();
     }
   }
 
-  _updateCartItem = (e) => {
+  updateCartItem = (e) => {
     e.preventDefault();
     const { state } = this;
     const { actions } = this.props;
 
     if (!state.quantityError) {
-      this._toggleQuantifying(false, null, (selectedItem) => {
+      this.toggleQuantifying(false, null, (selectedItem) => {
         actions.updateCartItem(selectedItem.id, state.quantity);
         this.setState({ isUpdating: false });
       });
     }
   }
 
-  _submitCart = (cart) => {
+  submitCart = (change) => {
     const {
       props: {
         actions,
         activities,
         params,
+        cart,
       },
       state,
     } = this;
@@ -222,8 +227,8 @@ export default class Cashier extends Component {
     }
   }
 
-  _handleSearch = (e) => {
-    if (!this.state.isQuantifying) {
+  handleSearch = (e) => {
+    if (!this.state.isQuantifying && !this.state.isSummaryOpen) {
       if (e.which === 8) {
         this.setState({
           searchText: this.state.searchText.slice(0, -1)
@@ -253,7 +258,7 @@ export default class Cashier extends Component {
           selectedGroup
         },
         items,
-        tiles,
+        tiles = [],
         cart,
         actions,
         params,
@@ -266,9 +271,18 @@ export default class Cashier extends Component {
         .indexOf(id) > -1
     );
 
+    const cartTotal = cart.reduce((p, c) => p + (c.quantity * c.sellingPrice), 0);
+
     return (
       <div>
-        <EventListener target={document} onKeyUp={this._handleSearch} capture />
+        <SummaryModal
+          cartItems={cart}
+          handleonSubmit={this.submitCart}
+          handleCancel={() => this.setState({ isSummaryOpen: false })}
+          isOpen={state.isSummaryOpen}
+          cartTotal={cartTotal}
+        />
+        <EventListener target={document} onKeyUp={this.handleSearch} capture />
         <Snackbar
           open={snackMessage}
           message={snackMessage}
@@ -278,18 +292,18 @@ export default class Cashier extends Component {
         <Dialog
           title={`${state.selectedItem.name} Quantity`}
           open={state.isQuantifying}
-          onRequestClose={this._toggleQuantifying}
+          onRequestClose={this.toggleQuantifying}
           contentStyle={styles.quantity}
           titleStyle={styles.quantityTitle}
         >
-          <form onSubmit={state.isUpdating ? this._updateCartItem : this._submitQuantity}>
+          <form onSubmit={state.isUpdating ? this.updateCartItem : this.submitQuantity}>
             <TextField
               type="number"
               step="any"
               min={1}
               name="quantity"
               value={state.quantity}
-              onChange={this._handleQuantity}
+              onChange={this.handleQuantity}
               onFocus={(e) => e.target.select()}
               errorText={state.quantityError}
               inputStyle={styles.quantityFont}
@@ -320,13 +334,40 @@ export default class Cashier extends Component {
           <div className="col-md-12" style={{ padding: 0, marginBottom: 15 }}>
             <AppBar
               title={
-                selectedGroup ||
-                  <DropDownMenu value={selectedFilter} onChange={actions.selectFilter}>
-                    <MenuItem value="all" primaryText="All" />
-                    <MenuItem value="category" primaryText="Category" />
-                    <MenuItem value="brand" primaryText="Brand" />
-                    <MenuItem value="supplier" primaryText="Supplier" />
-                  </DropDownMenu>
+                <div>
+                  {
+                    selectedGroup
+                    ? <span>{selectedGroup}&nbsp;</span>
+                    : (<IconMenu
+                        value={selectedFilter}
+                        onItemTouchTap={(_, child) => {
+                          actions.selectFilter(child.props.value);
+                          this.setState({ currentFilter: child.props.primaryText });
+                        }}
+                        iconButtonElement={<IconButton><FilterList color="white" /></IconButton>}
+                      >
+                        <MenuItem value="all" primaryText="All" />
+                        <MenuItem value="category" primaryText="Category" />
+                        <MenuItem value="brand" primaryText="Brand" />
+                        <MenuItem value="supplier" primaryText="Supplier" />
+                      </IconMenu>)
+                   }
+                  {state.currentFilter}
+                  <IconMenu
+                    value={selectedFilter}
+                    onItemTouchTap={(_, child) => {
+                      actions.selectSort(child.props.value);
+                      this.setState({ currentSort: child.props.primaryText });
+                    }}
+                    iconButtonElement={<IconButton><Sort color="white" /></IconButton>}
+                  >
+                    <MenuItem value="price_asc" primaryText="Price (ASC)" />
+                    <MenuItem value="price_desc" primaryText="Price (DESC)" />
+                    <MenuItem value="stock_asc" primaryText="Stock (ASC)" />
+                    <MenuItem value="stock_desc" primaryText="Stock (DESC)" />
+                  </IconMenu>
+                  {state.currentSort}
+                </div>
             }
               showMenuIconButton={selectedGroup !== ''}
               iconElementLeft={
@@ -335,15 +376,27 @@ export default class Cashier extends Component {
                 </IconButton>
               }
               iconElementRight={
-                <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: 'white',
+                    paddingRight: 15,
+                  }}
+                >
                   <IconButton
                     onTouchTap={() => this.setState({ searchText: '' })}
                     className={state.searchText ? '' : 'hidden'}
                     touch
                   >
-                    <Cancel />
+                    <Cancel color="white" />
                   </IconButton>
-                  <h3 style={{ display: 'inline-block' }}>{state.searchText}</h3>
+                  <p style={{ display: state.searchText ? 'block' : 'none' }}>
+                    Searching for:&nbsp;
+                  </p>
+                  <h3 style={{ display: 'inline-block' }}>
+                    {state.searchText}
+                  </h3>
                 </div>
               }
               style={{
@@ -352,7 +405,7 @@ export default class Cashier extends Component {
             />
           </div>
           <div style={tiles.length > 0 ? styles.hide : styles.tilesLoader}>
-            <CircularProgress size={2} />
+            <CircularProgress size={240} thickness={6.5} />
           </div>
           <div className="col-md-12">
             <div style={styles.tilesContainer}>
@@ -371,7 +424,7 @@ export default class Cashier extends Component {
                         key={i}
                         title={tile.name ? null : <span style={{ ...styles.gridTileTitle, fontSize: 'calc(8.3px + 1.5vw)' }}>{tile}</span>}
                         titlePosition={tile.name ? 'bottom' : 'top'}
-                        onTouchTap={tile.name ? () => tile.stock && this._toggleQuantifying(tile) : () => actions.selectGroup(tile)}
+                        onTouchTap={tile.name ? () => tile.stock && this.toggleQuantifying(tile) : () => actions.selectGroup(tile)}
                         style={styles.gridTile}
                         subtitle={
                           tile.sellingPrice
@@ -405,8 +458,8 @@ export default class Cashier extends Component {
                                 .map((item) => (
                                   <MenuItem
                                     key={item.id}
-                                    onTouchTap={() => this._toggleQuantifying(item)}
-                                    primaryText={item.name}
+                                    onTouchTap={() => this.toggleQuantifying(item)}
+                                    primaryText={item.feet ? `${item.feet}ft item.name` : item.name}
                                   />))}
                             </IconMenu>)
                         }
@@ -503,7 +556,7 @@ export default class Cashier extends Component {
                   key={item.id}
                   primaryText={item.name}
                   secondaryText={subText}
-                  onTouchTap={() => this._toggleQuantifying(item, true)}
+                  onTouchTap={() => this.toggleQuantifying(item, true)}
                   leftAvatar={<Avatar src={item.image || './static/placeholder.jpg'} />}
                   rightIconButton={
                     <IconButton onTouchTap={() => actions.removeCartItem(item.id)} touch>
@@ -517,18 +570,21 @@ export default class Cashier extends Component {
           <Paper style={styles.total}>
             <Link to={params.timestamp ? '/Activities' : '/Cashier'}>
               <RaisedButton
-                children={
-                  <div style={styles.purchaseButton}>
-                    <span style={{ position: 'absolute', top: 0, left: 10, fontSize: 20 }}>
-                    Total:
-                    </span>
-                  ₱{cart.reduce((p, c) => p + (c.quantity * c.sellingPrice), 0).toLocaleString('en-US')}
-                  </div>
-                }
-                onTouchTap={() => this._submitCart(cart)}
+                onTouchTap={() => {
+                  if (cart.length) {
+                    this.setState({ isSummaryOpen: true })
+                  }
+                }}
                 style={{ width: '100%', height: '100%' }}
                 primary
-              />
+              >
+                <div style={styles.purchaseButton}>
+                  <span style={{ position: 'absolute', top: 0, left: 10, fontSize: 20 }}>
+                  Total:
+                  </span>
+                  ₱{cartTotal.toLocaleString('en-US')}
+                </div>
+              </RaisedButton>
             </Link>
           </Paper>
         </Paper>

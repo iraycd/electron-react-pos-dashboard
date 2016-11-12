@@ -4,6 +4,7 @@ import { createSelector } from 'reselect';
 const getInventoryItems = (state) => state.inventory.items;
 const getSelectedGroup = (state) => state.cashier.selectedGroup;
 const getSelectedFilter = (state) => state.cashier.selectedFilter;
+const getSelectedSort = (state) => state.cashier.selectedSort;
 const getCart = (state) => state.cart;
 
 const getCategories = createSelector(
@@ -55,7 +56,7 @@ export const getItems = createSelector(
 
         if (isOtherFtInCart()) {
           getOtherTotalFt = cart.filter((item2) => item2.feet && item.id === removeIdFt(item2.id))
-            .map((item) => (item.feet * item.quantity))
+            .map((i) => (i.feet * i.quantity))
             .reduce((p, c) => p + c);
         }
 
@@ -100,8 +101,8 @@ export const getItems = createSelector(
 );
 
 export const getGridTiles = createSelector(
-  [getItems, getCategories, getSuppliers, getBrands, getSelectedGroup, getSelectedFilter],
-  (items, category, supplier, brand, group, filter) => {
+  [getItems, getCategories, getSuppliers, getBrands, getSelectedGroup, getSelectedFilter, getSelectedSort],
+  (items, category, supplier, brand, group, filter, sort) => {
     const tiles = {
       all: items,
       category,
@@ -109,7 +110,39 @@ export const getGridTiles = createSelector(
       brand,
     };
 
-    return group ? items.filter((item) => item[filter] === group) : tiles[filter];
+    return group
+      ? items
+          .sort((a, b) => {
+            if (sort === 'price_desc') {
+              return b.sellingPrice - a.sellingPrice;
+            }
+
+            if (sort === 'stock_asc') {
+              return a.stock - b.stock;
+            }
+
+            if (sort === 'stock_desc') {
+              return b.stock - a.stock;
+            }
+
+            return a.sellingPrice - b.sellingPrice;
+          })
+          .filter((item) => item[filter] === group)
+      : tiles[filter].sort((a, b) => {
+        if (sort === 'price_desc') {
+          return b.sellingPrice - a.sellingPrice;
+        }
+
+        if (sort === 'stock_asc') {
+          return a.stock - b.stock;
+        }
+
+        if (sort === 'stock_desc') {
+          return b.stock - a.stock;
+        }
+
+        return a.sellingPrice - b.sellingPrice;
+      });
   }
 );
 

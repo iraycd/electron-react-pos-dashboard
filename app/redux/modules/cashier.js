@@ -1,5 +1,6 @@
 const SELECT_GROUP = 'SELECT_GROUP';
 const SELECT_FILTER = 'SELECT_FILTER';
+const SELECT_SORT = 'SELECT_SORT';
 const TOGGLE_SNACKBAR = 'TOGGLE_SNACKBAR';
 
 const NEW_ITEM_ADDED = 'NEW_ITEM_ADDED';
@@ -9,6 +10,7 @@ const ITEM_REMOVED = 'ITEM_REMOVED';
 const init = {
   selectedGroup: '',
   selectedFilter: 'all',
+  selectedSort: 'price_asc',
   snackMessage: '',
   searchText: ''
 };
@@ -24,6 +26,11 @@ export default function reducer(state = init, action) {
       return {
         ...state,
         selectedFilter: action.filter,
+      };
+    case SELECT_SORT:
+      return {
+        ...state,
+        selectedSort: action.sort,
       };
     case TOGGLE_SNACKBAR:
       return {
@@ -57,10 +64,17 @@ export default function reducer(state = init, action) {
 }
 
 // Actions
-export function selectFilter(e, i, filter) {
+export function selectFilter(filter) {
   return {
     type: SELECT_FILTER,
     filter,
+  };
+}
+
+export function selectSort(sort) {
+  return {
+    type: SELECT_SORT,
+    sort,
   };
 }
 

@@ -1,6 +1,6 @@
 export default {
   interface: {
-    height: '90vh',
+    height: '91vh',
     overflowY: 'auto',
     padding: 0
   },
@@ -38,7 +38,7 @@ export default {
   tilesLoader: {
     display: 'flex',
     width: '100%',
-    height: '89%',
+    height: '85%',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -64,6 +64,6 @@ export default {
     color: 'white',
   },
   cartInterface: {
-    height: '90vh'
+    height: '91vh'
   }
 };

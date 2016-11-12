@@ -9,9 +9,11 @@ import ShowChart from 'material-ui/svg-icons/editor/show-chart';
 import Notifications from 'material-ui/svg-icons/social/notifications';
 import Accounts from 'material-ui/svg-icons/social/people';
 import Close from 'material-ui/svg-icons/navigation/close';
+import Apps from 'material-ui/svg-icons/navigation/apps';
 import Cart from 'material-ui/svg-icons/action/shopping-cart';
 import Folder from 'material-ui/svg-icons/file/folder';
 import IconButton from 'material-ui/IconButton';
+import IconMenu from 'material-ui/IconMenu';
 
 const styles = {
   bodyStyle: {
@@ -20,20 +22,23 @@ const styles = {
     backgroundColor: '#EDECEC',
     overflow: 'hidden',
   },
-  sideNavContainer: {
-    position: 'relative',
-    height: '90.5vh',
-    padding: 0,
-  },
   sideNav: {
     width: '100%',
   },
   mainContent: {
-    height: '90vh',
+    height: '91vh',
     overflowY: 'auto',
+  },
+  menuItem: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   hide: {
     display: 'none'
+  },
+  menuSpanWidth: {
+    width: '50%',
   }
 };
 
@@ -43,73 +48,81 @@ export default class DashboardLayout extends Component {
     children: PropTypes.node.isRequired
   }
 
-  constructor() {
-    super();
-
-    this.state = {
-      isExpanded: true
-    };
-  }
-
-  _toggleDrawer = () => {
-    this.setState({ isExpanded: !this.state.isExpanded });
-  }
-
   render() {
     const { location, params, } = this.props;
     return (
       <div style={styles.bodyStyle}>
         <AppBar
-          title={params.timestamp ? `Change Items - ${new Date(params.timestamp.slice(0, -3) * 1000).toLocaleString()}` : location.pathname.replace('/', '')}
+          title={
+            params.timestamp
+            ? `Change Items - ${new Date(params.timestamp.slice(0, -3) * 1000).toLocaleString()}`
+            : location.pathname.replace('/', '')
+          }
           iconElementLeft={
-            params.timestamp ?
+            params.timestamp
+            ? (
               <Link to="/Activities">
                 <IconButton>
-                  <Close />
+                  <Close color="white" />
                 </IconButton>
-              </Link> : null
+              </Link>
+            ) : (
+              <IconMenu
+                iconButtonElement={
+                  <IconButton>
+                    <Apps color="white" />
+                  </IconButton>
+                }
+              >
+                <Link to="/Inventory">
+                  <MenuItem>
+                    <div style={styles.menuItem}>
+                      <Folder />
+                      <span style={styles.menuSpanWidth}>Inventory</span>
+                    </div>
+                  </MenuItem>
+                </Link>
+                <Link to="/Activities">
+                  <MenuItem>
+                    <div style={styles.menuItem}>
+                      <Notifications />
+                      <span style={styles.menuSpanWidth}>Activities</span>
+                    </div>
+                  </MenuItem>
+                </Link>
+                {/** <Link to="/Analytics">
+                  <MenuItem>
+                    <div style={styles.menuItem}>
+                      <ShowChart />
+                      <span style={styles.menuSpanWidth}>Analytics</span>
+                    </div>
+                  </MenuItem>
+                </Link> **/}
+                <Link to="/Cashier">
+                  <MenuItem>
+                    <div style={styles.menuItem}>
+                      <Cart />
+                      <span style={styles.menuSpanWidth}>Cashier</span>
+                    </div>
+                  </MenuItem>
+                </Link>
+                <Link to="/Accounts">
+                  <MenuItem>
+                    <div style={styles.menuItem}>
+                      <Accounts />
+                      <span style={styles.menuSpanWidth}>Accounts</span>
+                    </div>
+                  </MenuItem>
+                </Link>
+              </IconMenu>
+            )
           }
-          onLeftIconButtonTouchTap={this._toggleDrawer}
+          onLeftIconButtonTouchTap={this.toggleDrawer}
           style={styles.appbar}
         />
-        <Paper
-          className={params.timestamp ? 'hidden' : this.state.isExpanded ? 'col-xs-1' : 'hidden'}
-          style={styles.sideNavContainer}
-        >
-          <Link to="/Inventory">
-            <MenuItem>
-              <Folder />
-              <span className="hidden-xs hidden-sm hidden-md">Inventory</span>
-            </MenuItem>
-          </Link>
-          <Link to="/Activities">
-            <MenuItem>
-              <Notifications />
-              <span className="hidden-xs hidden-sm hidden-md">Activities</span>
-            </MenuItem>
-          </Link>
-          {/** <Link to="/Analytics">
-            <MenuItem>
-              <ShowChart />
-              <span className="hidden-xs hidden-sm hidden-md">Analytics</span>
-            </MenuItem>
-          </Link> **/}
-          <Link to="/Cashier">
-            <MenuItem>
-              <Cart />
-              <span className="hidden-xs hidden-sm hidden-md">Cashier</span>
-            </MenuItem>
-          </Link>
-          <Link to="/Accounts">
-            <MenuItem>
-              <Accounts />
-              <span className="hidden-xs hidden-sm hidden-md">Accounts</span>
-            </MenuItem>
-          </Link>
-        </Paper>
         <div
           id="children"
-          className={this.state.isExpanded ? params.timestamp ? 'col-md-12' : 'col-md-11' : 'col-md-12'}
+          className="col-md-12"
           style={styles.mainContent}
         >
           {this.props.children}
