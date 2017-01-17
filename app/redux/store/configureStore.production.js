@@ -16,10 +16,10 @@ import * as inventoryUIActions from './../modules/inventoryUI';
 import * as loginActions from './../modules/login';
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyAfQL_veurKkeW3Tbfzn7WCWXJtbycBq68',
-  authDomain: 'vivid-torch-4276.firebaseapp.com',
-  databaseURL: 'https://vivid-torch-4276.firebaseio.com',
-  storageBucket: 'vivid-torch-4276.appspot.com',
+  apiKey: 'AIzaSyBbMyIPHxCEC_n1hJ0C1qx4aXJk0rsLtuo',
+  authDomain: 'medical-dashboard.firebaseapp.com',
+  databaseURL: 'https://medical-dashboard.firebaseio.com',
+  storageBucket: 'medical-dashboard.appspot.com',
 });
 
 const firebaseAPI = {
