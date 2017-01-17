@@ -1,3 +1,0 @@
-#POS System (admin)
-
-WIP
